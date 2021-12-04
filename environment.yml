@@ -1,4 +1,4 @@
-name: template
+name: blocking
 channels:
   - defaults
   - conda-forge

@@ -11,6 +11,6 @@ line_length = 88
 
 [tool.pyright]
 # https://github.com/microsoft/pyright
-venv = "template"
+venv = "blocking"
 typeCheckingMode = "off"
 useLibraryCodeForTypes = false
