@@ -1,0 +1,16 @@
+[tool.black]
+# https://github.com/psf/black
+line-length = 88
+
+[tool.isort]
+# https://github.com/timothycrosley/isort/
+profile = "black"
+combine_as_imports = true
+combine_star = true
+line_length = 88
+
+[tool.pyright]
+# https://github.com/microsoft/pyright
+venv = "template"
+typeCheckingMode = "off"
+useLibraryCodeForTypes = false

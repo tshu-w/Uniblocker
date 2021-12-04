@@ -1,0 +1,12 @@
+pytorch-lightning >= 1.5.0
+jsonargparse[signatures] >= 4.0.0
+transformers >= 4.15.0
+datasets >= 1.17.0
+rich >= 10.14
+shtab >= 1.5.0
+
+--find-links https://download.pytorch.org/whl/cu113/torch_stable.html
+torch >= 1.10.0
+
+scipy >= 1.7.0
+scikit-learn >= 1.0.0
