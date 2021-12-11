@@ -1,1 +1,1 @@
-from .glue_transformer import GLUETransformer
+from .deep_blocker.auto_encoder import AutoEncoder

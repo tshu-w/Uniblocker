@@ -16,7 +16,7 @@ from rich import print
 
 class LitCLI(LightningCLI):
     def add_arguments_to_parser(self, parser: LightningArgumentParser) -> None:
-        for arg in ["batch_size", "num_labels", "task_name"]:
+        for arg in []:
             parser.link_arguments(
                 f"data.init_args.{arg}",
                 f"model.init_args.{arg}",
