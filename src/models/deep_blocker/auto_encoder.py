@@ -6,12 +6,15 @@ from typing import Union
 import fasttext
 import torch
 import torch.nn.functional as F
+from jsonargparse import lazy_instance
 from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.types import STEP_OUTPUT
 from torch import nn
 from torchtext.data import get_tokenizer
 
-from src.models.deep_blocker.aggregator import AGGREGATOR_TYPE, get_aggregator
+from .aggregator import AGGREGATOR_TYPE, get_aggregator
+
+fasttext.FastText.eprint = lambda *args, **kwargs: None
 
 
 class AutoEncoder(LightningModule):
@@ -22,7 +25,7 @@ class AutoEncoder(LightningModule):
         aggregator_type: AGGREGATOR_TYPE = "sif",
         input_dim: int = 300,
         hidden_dims: Union[int, list[int]] = [300, 150],
-        activations: Union[nn.Module, list[nn.Module]] = nn.ReLU(),
+        activations: Union[nn.Module, list[nn.Module]] = lazy_instance(nn.ReLU),
         learning_rate: float = 1e-3,
     ):
         super().__init__()
@@ -55,6 +58,7 @@ class AutoEncoder(LightningModule):
         self.convert_to_features = get_aggregator(aggregator_type)(
             tokenizer=tokenizer, embedder=embedder
         )
+        self.feature_columns = ["embeddings"]
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.encoder(x)

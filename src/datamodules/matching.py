@@ -33,6 +33,7 @@ class Matching(LightningDataModule):
         self.convert_to_features = getattr(
             self.trainer.model, "convert_to_features", None
         )
+        self.feature_columns = getattr(self.trainer.model, "feature_columns", None)
         self.collate_fn = getattr(self.trainer.model, "collate_fn", None)
 
         if self.convert_to_features is not None:
@@ -46,16 +47,13 @@ class Matching(LightningDataModule):
         ]
 
         for i, dataset in enumerate(self.datasets):
-            remove_columns = dataset.column_names
-            remove_columns.remove("id")
             self.datasets[i] = dataset.map(
                 self.preprocess,
                 batched=True,
                 batch_size=None,
-                remove_columns=remove_columns,
             )
             if self.convert_to_features is not None:
-                self.datasets[i].set_format(type="torch")
+                self.datasets[i].set_format(type="torch", columns=self.feature_columns)
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return DataLoader(
