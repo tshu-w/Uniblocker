@@ -10,6 +10,7 @@ from jsonargparse import lazy_instance
 from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.types import STEP_OUTPUT
 from torch import nn
+from torch.utils.data.dataloader import default_collate
 from torchtext.data import get_tokenizer
 
 from .aggregator import AGGREGATOR_TYPE, get_aggregator
@@ -59,12 +60,13 @@ class AutoEncoder(LightningModule):
             tokenizer=tokenizer, embedder=embedder
         )
         self.feature_columns = ["embeddings"]
+        self.collate_fn = lambda batch: default_collate(batch)["embeddings"]
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.encoder(x)
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
-        x = batch["embeddings"]
+        x = batch
         z = self.forward(x)
         x_hat = self.decoder(z)
 
