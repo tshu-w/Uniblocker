@@ -48,29 +48,33 @@ class Matching(LightningDataModule):
         self.override_evaluation_loop()
 
     def setup(self, stage: Optional[str] = None) -> None:
-        self.datasets = [
-            load_dataset(f.suffix[1:], data_files=str(f), split="train")
-            for f in self.table_files
-        ]
+        if not hasattr(self, "datasets"):
+            self.datasets = [
+                load_dataset(f.suffix[1:], data_files=str(f), split="train")
+                for f in self.table_files
+            ]
 
-        for i, dataset in enumerate(self.datasets):
-            self.datasets[i] = dataset.map(
-                self.preprocess,
-                batched=True,
-                batch_size=None,
+            for i, dataset in enumerate(self.datasets):
+                self.datasets[i] = dataset.map(
+                    self.preprocess,
+                    batched=True,
+                    batch_size=None,
+                )
+                if self.convert_to_features is not None:
+                    self.datasets[i].set_format(
+                        type="torch", columns=self.feature_columns
+                    )
+
+        if not hasattr(self, "golden_pairs"):
+            label_files_suffix = self.label_files[0].suffix[1:]
+            assert all(label_files_suffix == f.suffix[1:] for f in self.label_files)
+            self.golden_pairs = load_dataset(
+                label_files_suffix, data_files=map(str, self.label_files), split="train"
             )
-            if self.convert_to_features is not None:
-                self.datasets[i].set_format(type="torch", columns=self.feature_columns)
-
-        label_files_suffix = self.label_files[0].suffix[1:]
-        assert all(label_files_suffix == f.suffix[1:] for f in self.label_files)
-        self.golden_pairs = load_dataset(
-            label_files_suffix, data_files=map(str, self.label_files), split="train"
-        )
-        self.golden_pairs = self.golden_pairs.filter(lambda x: x["label"] == 1)
-        self.golden_pairs = set(
-            zip(*itemgetter(*self.label_columns)(self.golden_pairs))
-        )
+            self.golden_pairs = self.golden_pairs.filter(lambda x: x["label"] == 1)
+            self.golden_pairs = set(
+                zip(*itemgetter(*self.label_columns)(self.golden_pairs))
+            )
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return DataLoader(
