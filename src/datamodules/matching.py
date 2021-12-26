@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import warnings
 from operator import itemgetter
 from pathlib import Path
 from typing import Optional
@@ -10,6 +11,10 @@ from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
 from torch.utils.data import ConcatDataset, DataLoader
 
 from .utils import EvaluationLoop
+
+warnings.filterwarnings(
+    "ignore", ".*Consider increasing the value of the `num_workers` argument*"
+)
 
 
 class Matching(LightningDataModule):
@@ -31,22 +36,6 @@ class Matching(LightningDataModule):
         self.label_files = [dataset_dir / f for f in label_files]
         self.label_columns = label_columns
 
-    def prepare_data(self) -> None:
-        for file in self.table_files + self.label_files:
-            load_dataset(file.suffix[1:], data_files=str(file))
-
-        self.convert_to_features = getattr(
-            self.trainer.model, "convert_to_features", None
-        )
-        self.feature_columns = getattr(self.trainer.model, "feature_columns", None)
-        self.collate_fn = getattr(self.trainer.model, "collate_fn", None)
-
-        if self.convert_to_features is not None:
-            preprocess_fn = self.preprocess
-            self.preprocess = lambda x: self.convert_to_features(preprocess_fn(x))
-
-        self.override_evaluation_loop()
-
     def setup(self, stage: Optional[str] = None) -> None:
         if not hasattr(self, "datasets"):
             self.datasets = [
@@ -54,16 +43,25 @@ class Matching(LightningDataModule):
                 for f in self.table_files
             ]
 
+            convert_to_features = getattr(
+                self.trainer.model, "convert_to_features", None
+            )
+            feature_columns = getattr(self.trainer.model, "feature_columns", None)
+            preprocess_fn = self._preprocess
+            preprocess = (
+                lambda x: convert_to_features(preprocess_fn(x))
+                if convert_to_features is not None
+                else preprocess_fn
+            )
+
             for i, dataset in enumerate(self.datasets):
                 self.datasets[i] = dataset.map(
-                    self.preprocess,
+                    preprocess,
                     batched=True,
                     batch_size=None,
                 )
-                if self.convert_to_features is not None:
-                    self.datasets[i].set_format(
-                        type="torch", columns=self.feature_columns
-                    )
+                if convert_to_features is not None:
+                    self.datasets[i].set_format(type="torch", columns=feature_columns)
 
         if not hasattr(self, "golden_pairs"):
             label_files_suffix = self.label_files[0].suffix[1:]
@@ -76,6 +74,12 @@ class Matching(LightningDataModule):
                 zip(*itemgetter(*self.label_columns)(self.golden_pairs))
             )
 
+        self.collate_fn = getattr(self.trainer.model, "collate_fn", None)
+
+    def prepare_data(self) -> None:
+        self.setup()  # setup first to ignore cache conflict in multi processes
+        self.override_evaluation_loop()
+
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return DataLoader(
             dataset=ConcatDataset(self.datasets),
@@ -87,7 +91,8 @@ class Matching(LightningDataModule):
             pin_memory=True,
         )
 
-    def preprocess(self, batch):
+    @staticmethod
+    def _preprocess(batch):
         columns = [c for c in batch.keys() if "id" not in c]
         text = []
         for tuple in zip(*(batch[c] for c in columns)):
