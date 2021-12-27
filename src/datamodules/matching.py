@@ -43,16 +43,10 @@ class Matching(LightningDataModule):
                 for f in self.table_files
             ]
 
-            convert_to_features = getattr(
-                self.trainer.model, "convert_to_features", None
-            )
+            convert_to_features = self.trainer.model.convert_to_features
             feature_columns = getattr(self.trainer.model, "feature_columns", None)
             preprocess_fn = self._preprocess
-            preprocess = (
-                lambda x: convert_to_features(preprocess_fn(x))
-                if convert_to_features is not None
-                else preprocess_fn
-            )
+            preprocess = lambda x: convert_to_features(preprocess_fn(x))
 
             for i, dataset in enumerate(self.datasets):
                 self.datasets[i] = dataset.map(
@@ -60,8 +54,7 @@ class Matching(LightningDataModule):
                     batched=True,
                     batch_size=None,
                 )
-                if convert_to_features is not None:
-                    self.datasets[i].set_format(type="torch", columns=feature_columns)
+                self.datasets[i].set_format(type="torch", columns=feature_columns)
 
         if not hasattr(self, "golden_pairs"):
             label_files_suffix = self.label_files[0].suffix[1:]

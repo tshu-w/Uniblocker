@@ -71,15 +71,9 @@ class GLUE(LightningDataModule):
 
     def setup(self, stage: Optional[str] = None) -> None:
         if not hasattr(self, "datasets"):
-            convert_to_features = getattr(
-                self.trainer.model, "convert_to_features", None
-            )
+            convert_to_features = self.trainer.model.convert_to_features
             preprocess_fn = partial(self._preprocess, text_fields=self.text_fields)
-            preprocess = (
-                lambda x: convert_to_features(preprocess_fn(x))
-                if convert_to_features is not None
-                else preprocess_fn
-            )
+            preprocess = lambda x: convert_to_features(preprocess_fn(x))
 
             datasets = load_dataset("glue", self.task_name)
             columns_names = self.text_fields + ["label", "idx"]
@@ -89,8 +83,7 @@ class GLUE(LightningDataModule):
                 remove_columns=columns_names,
             )
 
-            if convert_to_features is not None:
-                self.datasets.set_format(type="torch")
+            self.datasets.set_format(type="torch")
 
             self.val_splits = [x for x in self.datasets.keys() if "validation" in x]
             self.test_splits = [x for x in self.datasets.keys() if "test" in x]

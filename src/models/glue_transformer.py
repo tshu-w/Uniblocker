@@ -33,12 +33,12 @@ class GLUETransformer(LightningModule):
         self.save_hyperparameters()
 
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-        # self.collate_fn = partial(
-        #     self._collate_fn, tokenizer=tokenizer, max_length=max_length
-        # )
         self.convert_to_features = partial(
             self._convert_to_features, tokenizer=tokenizer, max_length=max_length
         )
+        # self.collate_fn = partial(
+        #     self._collate_fn, tokenizer=tokenizer, max_length=max_length
+        # )
         self.model = AutoModelForSequenceClassification.from_pretrained(
             model_name_or_path, num_labels=num_labels
         )
