@@ -1,14 +1,12 @@
-#!/usr/bin/env python
-
 import json
 import logging
-from collections import ChainMap
+import os
+from collections import ChainMap, defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import shtab
-from pytorch_lightning.loggers import LightningLoggerBase, LoggerCollection
 from pytorch_lightning.trainer.states import TrainerFn
 from pytorch_lightning.utilities.cli import LightningArgumentParser, LightningCLI
 from rich import print
@@ -16,56 +14,32 @@ from rich import print
 
 class LitCLI(LightningCLI):
     def add_arguments_to_parser(self, parser: LightningArgumentParser) -> None:
-        for arg in []:
+        parser.add_argument("-n", "--name", default="none", help="Experiment name")
+
+        for arg in ["num_labels", "task_name"]:
             parser.link_arguments(
                 f"data.init_args.{arg}",
                 f"model.init_args.{arg}",
                 apply_on="instantiate",
             )
 
-    def modify_logger(self, logger: LightningLoggerBase, exp_name: str, version: str):
-        if exp_name and hasattr(logger, "_name"):
-            logger._name = exp_name
+    def before_instantiate_classes(self) -> None:
+        trainer_config = self.config[self.subcommand]["trainer"]
+        if trainer_config["enable_checkpointing"]:
+            run_type = "experiments" if self.subcommand == "fit" else "evaluations"
+            name = self.config[self.subcommand]["name"]
+            timestamp = datetime.now().strftime("%m-%dT%H%M%S")
+            default_root_dir = os.path.join("results", run_type, name, timestamp)
+            trainer_config["default_root_dir"] = default_root_dir
 
-        if version and hasattr(logger, "_version"):
-            logger._version = version
-
-    def before_run(self):
-        model_name = type(self.model).__name__
-        datamodule_name = type(self.datamodule).__name__ if self.datamodule else ""
-        exp_name = "_".join(filter(None, [model_name, datamodule_name]))
-
-        model_version = (
-            self.model.get_version() if hasattr(self.model, "get_version") else ""
-        )
-        datamodule_version = (
-            self.datamodule.get_version()
-            if hasattr(self.datamodule, "get_version")
-            else ""
-        )
-        seed = str(self.seed_everything_default)
-        timestramp = datetime.now().strftime("%m%d-%H%M%S")
-        version = "_".join(
-            filter(None, [model_version, datamodule_version, seed, timestramp])
-        )
-        log_dir = (
-            f"{self.trainer.default_root_dir}/{exp_name.lower()}/{version.lower()}"
-        )
-
-        print(f"Experiment: [bold]{exp_name}[/bold]")
-        print(f"Version:    [bold]{version}[/bold]")
-        print(f"Log Dir:    [bold]{log_dir}[/bold]")
-
-        if isinstance(self.trainer.logger, LoggerCollection):
-            for logger in self.trainer.logger:
-                self.modify_logger(logger, exp_name.lower(), version.lower())
-        else:
-            self.modify_logger(self.trainer.logger, exp_name.lower(), version.lower())
-
-        if self.subcommand in ["validate", "test"]:
-            self.config_init[self.subcommand]["verbose"] = False
-
-    before_fit = before_validate = before_test = before_run
+            assert isinstance(trainer_config["logger"], dict)
+            logger_init_args = trainer_config["logger"]["init_args"]
+            logger_init_args["save_dir"] = os.path.join("results", run_type)
+            logger_init_args["name"] = name
+            logger_init_args["version"] = timestamp
+        else:  # debugging
+            self.save_config_callback = None
+            trainer_config["logger"] = False
 
     def after_run(self):
         results = {}
@@ -76,7 +50,7 @@ class LitCLI(LightningCLI):
                 and self.trainer.checkpoint_callback.best_model_path
             ):
                 ckpt_path = self.trainer.checkpoint_callback.best_model_path
-                # Disable useless logging
+                # inhibit disturbing logging
                 logging.getLogger("pytorch_lightning.utilities.distributed").setLevel(
                     logging.WARNING
                 )
@@ -124,6 +98,13 @@ class LitCLI(LightningCLI):
         subparser_kwargs: dict[str, Any],
     ) -> None:
         """Initialize and setup the parser, subcommands, and arguments."""
+        # move default_config_files to subparser_kwargs
+        if add_subcommands:
+            default_configs = main_kwargs.pop("default_config_files", None)
+            subparser_kwargs = defaultdict(dict, subparser_kwargs)
+            for subcmd in self.subcommands():
+                subparser_kwargs[subcmd]["default_config_files"] = default_configs
+
         self.parser = self.init_parser(**main_kwargs)
         shtab.add_argument_to(self.parser, ["-s", "--print-completion"])
 

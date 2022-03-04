@@ -1,13 +1,6 @@
-### Deep learning project seed
-Use this seed to start new deep learning / ML projects.
+# Lightning-Template
 
-- Built in requirements
-- Examples with [Transformers](https://huggingface.co/transformers/)
-- Badges
-- Bibtex
-
-#### Goals
-The goal of this seed is to structure ML paper-code the same so that work can easily be extended and replicated.
+A clean and scalable template to structure ML paper-code the same so that work can easily be extended and replicated.
 
 ### DELETE EVERYTHING ABOVE FOR YOUR PROJECT
 
@@ -25,7 +18,6 @@ The goal of this seed is to structure ML paper-code the same so that work can ea
 ARXIV
 [![Paper](http://img.shields.io/badge/arxiv-math.co:1480.1111-B31B1B.svg)](https://www.nature.com/articles/nature14539)
 -->
-<!-- ![CI testing](https://github.com/PyTorchLightning/deep-learning-project-template/workflows/CI%20testing/badge.svg?branch=master&event=push) -->
 
 
 <!--
@@ -40,21 +32,33 @@ What it does
 First, install dependencies
 ```bash
 # clone project
-git clone https://github.com/YourGithubName/deep-learning-project-template
+git clone https://github.com/YourGithubName/your-repository-name
+cd your-repository-name
 
-# install project
-cd deep-learning-project-template
-conda env create --file environment.yml # or pip install -r requirements.txt
- ```
- Next, use main script to run it.
- ```bash
-# module folder
-cd project
+# [OPTIONAL] create conda environment
+conda create -n template python=3.9
+conda activate template
 
-./run fit --data GLUE --model GLUETransformer --model.model_name_or_path bert-base-uncased --model.max_length 128 --trainer.gpus 1, --trainer.max_epochs 1
+# install requirements
+pip install -r requirements.txt
 ```
 
-### Citation
+Next, run experiments with the `run` script.
+```bash
+# fit with the demo config
+./run fit --config configs/demo.yaml
+# or specific command line arguments
+./run fit --model MNISTModel --data MNISTDataModule --data.batch_size 32 --trainer.gpus 0
+
+# evaluate with the checkpoint
+./run test --config configs/demo.yaml --ckpt_path ckpt_path
+
+# get the script help
+./run --help
+./run fit --help
+```
+
+## Citation
 ```
 @article{YourName,
   title={Your Title},

@@ -1,31 +1,27 @@
 #!/usr/bin/env python
 
 import argparse
+import os
 
 from pytorch_lightning import LightningDataModule, LightningModule
 from pytorch_lightning.utilities.cli import DATAMODULE_REGISTRY, MODEL_REGISTRY
 
 import src.datamodules
 import src.models
-from src.callbacks import ProgressBar
-from src.lit_cli import LitCLI
+from src.utils import LitCLI
 
 MODEL_REGISTRY.register_classes(src.models, LightningModule)
 DATAMODULE_REGISTRY.register_classes(src.datamodules, LightningDataModule)
 
 
 def main():
-    callbacks = [ProgressBar()]
+    os.chdir(os.path.dirname(__file__))
+
     cli = LitCLI(
-        seed_everything_default=142,
-        save_config_overwrite=True,
-        trainer_defaults={
-            "default_root_dir": "results",
-            "callbacks": callbacks,
-        },
         parser_kwargs={
+            "default_config_files": ["configs/presets/default.yaml"],
             "epilog": f"""
-Availabed Modules:     {list(MODEL_REGISTRY)}
+Availabed Models:      {list(MODEL_REGISTRY)}
 Availabed Datamodules: {list(DATAMODULE_REGISTRY)}
             """,
             "formatter_class": argparse.RawDescriptionHelpFormatter,

@@ -129,9 +129,12 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+### Lightning-Template ###
+/data/*
+!/data/.gitkeep
+/models/*
+!/models/.gitkeep
+/results/*
+!/results/.gitkeep
 
-### Lightning / research ###
-/data
-/models
-/results
-/logs
+!.dir-locals.el
