@@ -13,16 +13,16 @@ from torch import nn
 from torch.utils.data.dataloader import default_collate
 from torchtext.data import get_tokenizer
 
-from .aggregator import AGGREGATOR_TYPE, get_aggregator
+from .modules.aggregator import AGGREGATOR_TYPE, get_aggregator
 
 fasttext.FastText.eprint = lambda *args, **kwargs: None
 
 
-class AutoEncoder(LightningModule):
+class DeepBlocker(LightningModule):
     def __init__(
         self,
         tokenizer: str = "basic_english",
-        fasttext_model_path: str = "~/.cache/models/wiki.en.bin",
+        fasttext_model_path: str = "./models/wiki.en/wiki.en.bin",
         aggregator_type: AGGREGATOR_TYPE = "sif",
         input_dim: int = 300,
         hidden_dims: Union[int, list[int]] = [300, 150],
@@ -71,7 +71,6 @@ class AutoEncoder(LightningModule):
         x_hat = self.decoder(z)
 
         loss = F.mse_loss(x_hat, x)
-        self.log("train_loss", loss)
 
         return loss
 

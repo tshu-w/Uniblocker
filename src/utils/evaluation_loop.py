@@ -49,6 +49,7 @@ class EvaluationLoop(Loop):
             "recall": len(candidate_pairs & golden_pairs) / len(golden_pairs),
             "cssr": len(candidate_pairs) / (len(datasets[0]) + len(datasets[1])),
         }
+        self.trainer.logger_connector._logged_metrics.update(results)
         self.outputs = [results]
 
     def on_run_end(self) -> T:

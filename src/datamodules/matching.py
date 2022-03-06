@@ -10,8 +10,6 @@ from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
 from torch.utils.data import ConcatDataset, DataLoader
 
-from .utils import EvaluationLoop
-
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
 )
@@ -71,7 +69,6 @@ class Matching(LightningDataModule):
 
     def prepare_data(self) -> None:
         self.setup()  # setup first to ignore cache conflict in multi processes
-        self.override_evaluation_loop()
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return DataLoader(
@@ -92,10 +89,3 @@ class Matching(LightningDataModule):
             text.append(" ".join(map(lambda x: str(x or ""), tuple)))
 
         return {"text": text}
-
-    def override_evaluation_loop(self):
-        self.trainer.test_loop = EvaluationLoop()
-
-        empty_fn = lambda *args, **kwargs: None
-        self.val_dataloader = self.test_dataloader = empty_fn
-        self.trainer.model.validation_step = self.trainer.model.test_step = empty_fn

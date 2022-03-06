@@ -1,1 +1,1 @@
-from .deep_blocker.auto_encoder import AutoEncoder
+from .deep_blocker import DeepBlocker

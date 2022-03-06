@@ -11,12 +11,14 @@ from pytorch_lightning.trainer.states import TrainerFn
 from pytorch_lightning.utilities.cli import LightningArgumentParser, LightningCLI
 from rich import print
 
+from .evaluation_loop import EvaluationLoop
+
 
 class LitCLI(LightningCLI):
     def add_arguments_to_parser(self, parser: LightningArgumentParser) -> None:
         parser.add_argument("-n", "--name", default="none", help="Experiment name")
 
-        for arg in ["num_labels", "task_name"]:
+        for arg in []:
             parser.link_arguments(
                 f"data.init_args.{arg}",
                 f"model.init_args.{arg}",
@@ -40,6 +42,15 @@ class LitCLI(LightningCLI):
         else:  # debugging
             self.save_config_callback = None
             trainer_config["logger"] = False
+
+    def before_run(self):
+        self.trainer.test_loop = EvaluationLoop()
+
+        empty_fn = lambda *args, **kwargs: None
+        self.model.validation_step = self.model.test_step = empty_fn
+        self.datamodule.validation_step = self.datamodule.test_dataloader = empty_fn
+
+    before_fit = before_validate = before_test = before_run
 
     def after_run(self):
         results = {}
