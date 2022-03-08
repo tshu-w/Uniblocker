@@ -1,0 +1,28 @@
+name: clencoder_walmart-amazon
+seed_everything: 123
+trainer:
+  max_epochs: 30
+model:
+  class_path: src.models.cl_encoder.CLEncoder
+  init_args:
+    model_name_or_path: models/bert-base-uncased
+    max_length: 256
+    temperature: 0.05
+    learning_rate: 2.0e-05
+data:
+  class_path: src.datamodules.matching.Matching
+  init_args:
+    data_dir: ./data/deepmatcher/
+    dataset: Structured/Walmart-Amazon
+    table_files:
+      - tableA.csv
+      - tableB.csv
+    label_files:
+      - train.csv
+      - valid.csv
+      - test.csv
+    label_columns:
+      - ltable_id
+      - rtable_id
+    batch_size: 32
+    num_workers: 0

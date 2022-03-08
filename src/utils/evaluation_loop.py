@@ -3,6 +3,7 @@
 from typing import Any, TypeVar
 
 import numpy as np
+import torch
 from pytorch_lightning.loops import Loop
 from pytorch_lightning.trainer.connectors.logger_connector.result import (
     _OUT_DICT,
@@ -65,12 +66,18 @@ class EvaluationLoop(Loop):
 
     def encode(self, batch: dict[list]):
         model = self.trainer.model
-        collate_fn = getattr(self.trainer.model, "collate_fn") or default_collate
+        collate_fn = getattr(self.trainer.model, "collate_fn", default_collate)
 
         batch: list[dict] = [dict(zip(batch, t)) for t in zip(*batch.values())]
-        embeddings = (
-            model(collate_fn(batch).to(model.device)).detach().to("cpu").numpy()
-        )
+        batch = collate_fn(batch)
+
+        if isinstance(batch, torch.Tensor):
+            batch = batch.to(model.device)
+        elif isinstance(batch, dict):
+            for k, v in batch.items():
+                batch[k] = v.to(model.device)
+
+        embeddings = model(batch).detach().to("cpu").numpy()
 
         return {"embeddings": embeddings}
 
