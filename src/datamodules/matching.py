@@ -25,6 +25,7 @@ class Matching(LightningDataModule):
         label_columns: list[str] = ["ltable_id", "rtable_id"],
         batch_size: int = 32,
         num_workers: int = 0,
+        pin_memory: bool = False,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -74,11 +75,11 @@ class Matching(LightningDataModule):
         return DataLoader(
             dataset=ConcatDataset(self.datasets),
             batch_size=self.hparams.batch_size,
-            shuffle=True,
             num_workers=self.hparams.num_workers,
+            pin_memory=self.hparams.pin_memory,
             collate_fn=self.collate_fn,
             persistent_workers=self.hparams.num_workers > 0,
-            pin_memory=True,
+            shuffle=False,
         )
 
     @staticmethod
