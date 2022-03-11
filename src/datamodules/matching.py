@@ -8,7 +8,9 @@ from typing import Optional
 from datasets.load import load_dataset
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
-from torch.utils.data import ConcatDataset, DataLoader
+from torch.utils.data import DataLoader
+
+from src.utils import SequentialLoader
 
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
@@ -72,15 +74,19 @@ class Matching(LightningDataModule):
         self.setup()  # setup first to ignore cache conflict in multi processes
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
-        return DataLoader(
-            dataset=ConcatDataset(self.datasets),
-            batch_size=self.hparams.batch_size,
-            num_workers=self.hparams.num_workers,
-            pin_memory=self.hparams.pin_memory,
-            collate_fn=self.collate_fn,
-            persistent_workers=self.hparams.num_workers > 0,
-            shuffle=False,
+        dataloaders = (
+            DataLoader(
+                dataset=dataset,
+                batch_size=self.hparams.batch_size,
+                num_workers=self.hparams.num_workers,
+                pin_memory=self.hparams.pin_memory,
+                collate_fn=self.collate_fn,
+                persistent_workers=self.hparams.num_workers > 0,
+                shuffle=False,
+            )
+            for dataset in self.datasets
         )
+        return SequentialLoader(*dataloaders)
 
     @staticmethod
     def _preprocess(batch):
