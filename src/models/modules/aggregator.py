@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from abc import ABC, abstractmethod
 from typing import Counter, Literal
 

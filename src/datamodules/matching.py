@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import warnings
 from operator import itemgetter
 from pathlib import Path

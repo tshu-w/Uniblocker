@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from typing import Any, TypeVar
 
 import numpy as np

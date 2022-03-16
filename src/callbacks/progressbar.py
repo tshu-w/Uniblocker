@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from pytorch_lightning.callbacks import TQDMProgressBar
 
 
