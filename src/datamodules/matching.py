@@ -87,10 +87,12 @@ class Matching(LightningDataModule):
         return SequentialLoader(*dataloaders)
 
     @staticmethod
-    def _preprocess(batch):
+    def _preprocess(batch: dict[list]):
         columns = [c for c in batch.keys() if "id" not in c]
+        batch_size = len(next(iter(batch.values())))
+
         text = []
-        for tuple in zip(*(batch[c] for c in columns)):
-            text.append(" ".join(map(lambda x: str(x or ""), tuple)))
+        for i in range(batch_size):
+            text.append(" ".join(f"{c} {batch[c][i] or ''}" for c in columns))
 
         return {"text": text}
