@@ -17,3 +17,4 @@ all = true
 [tool.pyright]
 venv = "blocking"
 typeCheckingMode = "off"
+useLibraryCodeForTypes = true
