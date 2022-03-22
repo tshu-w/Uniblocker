@@ -8,6 +8,7 @@ from pytorch_lightning.trainer.connectors.logger_connector.result import (
 )
 from pytorch_lightning.utilities import move_data_to_device
 from torch.utils.data.dataloader import default_collate
+from tqdm import tqdm
 
 T = TypeVar("T")  # the output type of `run`
 
@@ -37,7 +38,7 @@ class EvaluationLoop(Loop):
             datasets[i].reset_format()
 
         candidate_pairs = set()
-        for record in datasets[0]:
+        for record in tqdm(datasets[0]):
             query = np.array(record["embeddings"], dtype=np.float32)
             _scores, examples = datasets[1].get_nearest_examples(
                 index_name="embeddings", query=query, k=self.k
