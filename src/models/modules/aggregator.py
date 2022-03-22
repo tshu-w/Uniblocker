@@ -7,6 +7,10 @@ from sklearn.decomposition import TruncatedSVD
 AGGREGATOR_TYPE = Literal["average", "sif"]
 
 
+def serialize(records: list[list[tuple]]) -> list[str]:
+    return [" ".join(f"{t[1] or ''}" for t in record) for record in records]
+
+
 class Aggregator(ABC):
     def __init__(self, tokenizer, embedder) -> None:
         self.tokenizer = tokenizer
@@ -26,7 +30,8 @@ class Aggregator(ABC):
 class AverageAggregator(Aggregator):
     def __call__(self, table):
         embeddings = []
-        for text in table["text"]:
+        texts = serialize(table["record"])
+        for text in texts:
             embeddings.append(
                 np.mean(
                     [
@@ -52,7 +57,8 @@ class SIFAggregator(Aggregator):
 
     def __call__(self, table):
         token_counter = Counter()
-        for text in table["text"]:
+        texts = serialize(table["record"])
+        for text in texts:
             token_counter.update(self.tokenizer(text))
         token_count = sum(token_counter.values())
 
@@ -65,7 +71,7 @@ class SIFAggregator(Aggregator):
                 token_weight[token] = 1.0
 
         embeddings = []
-        for text in table["text"]:
+        for text in texts:
             embeddings.append(
                 np.mean(
                     [

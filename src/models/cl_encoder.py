@@ -58,8 +58,12 @@ class CLEncoder(LightningModule):
         tokenizer: PreTrainedTokenizer,
         max_length: Optional[int] = None,
     ) -> Union[dict, Any]:
+        texts = [
+            " ".join(f"{t[0]} {t[1] or ''}" for t in record)
+            for record in batch["record"]
+        ]
         features = tokenizer(
-            batch["text"],
+            texts,
             padding="max_length",
             truncation=True,
             max_length=max_length,

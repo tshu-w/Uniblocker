@@ -71,8 +71,8 @@ class GitTables(LightningDataModule):
     def _preprocess(batch: dict[list]):
         batch_size = len(next(iter(batch.values())))
 
-        text = []
+        record = []
         for tpl in map(json.loads, batch["tuple"]):
-            text.append(" ".join(f"{k} {v or ''}" for k, v in tpl.items()))
+            record.append([(k, v) for k, v in tpl.items()])
 
-        return {"text": text}
+        return {"record": record}

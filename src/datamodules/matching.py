@@ -91,8 +91,8 @@ class Matching(LightningDataModule):
         columns = [c for c in batch.keys() if "id" not in c]
         batch_size = len(next(iter(batch.values())))
 
-        text = []
+        record = []
         for i in range(batch_size):
-            text.append(" ".join(f"{c} {batch[c][i] or ''}" for c in columns))
+            record.append([(c, batch[c][i]) for c in columns])
 
-        return {"text": text}
+        return {"record": record}
