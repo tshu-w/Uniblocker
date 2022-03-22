@@ -22,6 +22,8 @@ class CLEncoder(LightningModule):
         self.temperature = temperature
 
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+        # HACK: https://github.com/huggingface/transformers/issues/14931
+        tokenizer("Lorem Ipsum", truncation=True)
         self.convert_to_features = partial(
             self._convert_to_features, tokenizer=tokenizer, max_length=max_length
         )
