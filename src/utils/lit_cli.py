@@ -44,11 +44,12 @@ class LitCLI(LightningCLI):
             trainer_config["logger"] = False
 
     def before_run(self):
-        self.trainer.test_loop = EvaluationLoop()
+        if hasattr(self.trainer.datamodule, "golden_pairs"):
+            self.trainer.test_loop = EvaluationLoop()
 
-        empty_fn = lambda *args, **kwargs: None
-        self.model.validation_step = self.model.test_step = empty_fn
-        self.datamodule.val_dataloader = self.datamodule.test_dataloader = empty_fn
+            empty_fn = lambda *args, **kwargs: None
+            self.model.validation_step = self.model.test_step = empty_fn
+            self.datamodule.val_dataloader = self.datamodule.test_dataloader = empty_fn
 
     before_fit = before_validate = before_test = before_run
 

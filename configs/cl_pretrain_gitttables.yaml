@@ -1,0 +1,24 @@
+name: cl_pretrain_gittables
+seed_everything: 123
+trainer:
+  max_epochs: 5
+  callbacks:
+    - class_path: pytorch_lightning.callbacks.ModelCheckpoint
+      init_args:
+        save_top_k: -1
+        every_n_train_steps: 1000
+model:
+  class_path: src.models.cl_encoder.CLEncoder
+  init_args:
+    model_name_or_path: models/bert-base-uncased
+    max_length: 256
+    temperature: 0.05
+    learning_rate: 2.0e-05
+data:
+  class_path: src.datamodules.git_tables.GitTables
+  init_args:
+    data_dir: ./data/gittables/
+    data_files: null
+    batch_size: 32
+    num_workers: 0
+    pin_memory: true
