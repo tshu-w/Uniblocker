@@ -11,7 +11,8 @@ from pytorch_lightning.trainer.states import TrainerFn
 from pytorch_lightning.utilities.cli import LightningArgumentParser, LightningCLI
 from rich import print
 
-from .evaluation_loop import EvaluationLoop
+from src.datamodules import Matching
+from src.utils.evaluation_loop import EvaluationLoop
 
 
 class LitCLI(LightningCLI):
@@ -44,7 +45,7 @@ class LitCLI(LightningCLI):
             trainer_config["logger"] = False
 
     def before_run(self):
-        if hasattr(self.trainer.datamodule, "golden_pairs"):
+        if isinstance(self.datamodule, Matching):
             self.trainer.test_loop = EvaluationLoop()
 
             empty_fn = lambda *args, **kwargs: None

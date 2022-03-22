@@ -8,7 +8,7 @@ from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
 from torch.utils.data import DataLoader
 
-from src.utils import SequentialLoader
+from src.utils.sequential_loader import SequentialLoader
 
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"

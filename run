@@ -8,7 +8,7 @@ from pytorch_lightning.utilities.cli import DATAMODULE_REGISTRY, MODEL_REGISTRY
 
 import src.datamodules
 import src.models
-from src.utils import LitCLI
+from src.utils.lit_cli import LitCLI
 
 MODEL_REGISTRY.register_classes(src.models, LightningModule)
 DATAMODULE_REGISTRY.register_classes(src.datamodules, LightningDataModule)
