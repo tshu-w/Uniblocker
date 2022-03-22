@@ -48,7 +48,7 @@ class LitCLI(LightningCLI):
 
         empty_fn = lambda *args, **kwargs: None
         self.model.validation_step = self.model.test_step = empty_fn
-        self.datamodule.validation_step = self.datamodule.test_dataloader = empty_fn
+        self.datamodule.val_dataloader = self.datamodule.test_dataloader = empty_fn
 
     before_fit = before_validate = before_test = before_run
 
