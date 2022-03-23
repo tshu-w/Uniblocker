@@ -43,6 +43,7 @@ class CLEncoder(LightningModule):
         labels = torch.arange(len(sim), device=self.device)
 
         loss = F.cross_entropy(sim, labels)
+        self.log("loss", loss)
 
         return loss
 
