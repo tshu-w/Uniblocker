@@ -45,7 +45,7 @@ class GitTables(LightningDataModule):
                 preprocess,
                 batched=True,
                 batch_size=4,
-                remove_columns=["_file", "_idx", "tuple"],
+                remove_columns=["_file", "_idx", "record"],
             )
             self.dataset = dataset.with_format("torch")
 
@@ -72,7 +72,7 @@ class GitTables(LightningDataModule):
         batch_size = len(next(iter(batch.values())))
 
         record = []
-        for tpl in map(json.loads, batch["tuple"]):
-            record.append([(k, v) for k, v in tpl.items()])
+        for r in map(json.loads, batch["record"]):
+            record.append([(k, v) for k, v in r.items()])
 
         return {"record": record}

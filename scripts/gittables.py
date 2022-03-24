@@ -4,14 +4,15 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
-RAW_DIR = Path("../data/gittables_raw/")
 DATA_DIR = Path("../data/gittables/")
+RAW_DIR = DATA_DIR / "raw"
+PROCESSED_DIR = DATA_DIR / "processed"
 
 for path in RAW_DIR.iterdir():
     if not path.is_dir():
         continue
 
-    with open(DATA_DIR / f"{path.name}.jsonl", "w") as f:
+    with open(PROCESSED_DIR / f"{path.name}.jsonl", "w") as f:
         for file in tqdm(path.rglob("*.parquet")):
             try:
                 df = pd.read_parquet(file)
@@ -19,16 +20,16 @@ for path in RAW_DIR.iterdir():
             except Exception as e:
                 print(file)
 
-            filename = str(file.relative_to(DATA_DIR))
+            filename = str(file.relative_to(RAW_DIR))
             df.columns = df.columns.str.replace("\ufeff", "")
-            tuples = df.to_dict("records")
-            for i, t in enumerate(tuples):
-                tuples[i] = json.dumps(
+            records = df.to_dict("records")
+            for i, r in enumerate(records):
+                records[i] = json.dumps(
                     {
                         "_file": filename,
                         "_idx": i,
-                        "tuple": json.dumps(t, ensure_ascii=False),
+                        "record": json.dumps(r, ensure_ascii=False),
                     }
                 )
 
-            f.writelines(t + "\n" for t in tuples)
+            f.writelines(r + "\n" for r in records)
