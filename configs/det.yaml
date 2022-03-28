@@ -1,7 +1,7 @@
-description: lightning-template
+description: universal-blocker
 
 environment:
-  image: docker.cipsup.cn/wangtianshu/lightning-template
+  image: docker.cipsup.cn/wangtianshu/universal-blocker
   # force_pull_image: true
 
 bind_mounts:
