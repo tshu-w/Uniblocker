@@ -50,12 +50,12 @@ class LitCLI(LightningCLI):
 
     def before_run(self):
         if isinstance(self.datamodule, Matching):
-            # fit_loop = self.trainer.fit_loop
-            # epoch_loop = fit_loop.epoch_loop
-            # epoch_loop.connect(val_loop=EvaluationLoop())
-            # fit_loop.connect(epoch_loop=epoch_loop)
+            fit_loop = self.trainer.fit_loop
+            epoch_loop = fit_loop.epoch_loop
+            epoch_loop.connect(val_loop=EvaluationLoop())
+            fit_loop.connect(epoch_loop=epoch_loop)
+            self.trainer.fit_loop = fit_loop
 
-            # self.trainer.fit_loop = fit_loop
             self.trainer.test_loop = EvaluationLoop()
 
             empty_fn = lambda *args, **kwargs: None
