@@ -1,7 +1,7 @@
 name: cl_pretrain_gittables
 seed_everything: 123
 trainer:
-  max_epochs: 5
+  max_epochs: 3
   callbacks:
     - class_path: pytorch_lightning.callbacks.ModelCheckpoint
       init_args:
