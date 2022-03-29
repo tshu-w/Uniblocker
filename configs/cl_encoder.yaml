@@ -1,12 +1,12 @@
 name: clencoder_walmart-amazon
 seed_everything: 123
 trainer:
-  max_epochs: 30
+  max_epochs: 10 # 6
 model:
   class_path: src.models.cl_encoder.CLEncoder
   init_args:
     model_name_or_path: models/bert-base-uncased
-    max_length: 256
+    max_length: 128
     temperature: 0.05
     learning_rate: 2.0e-05
 data:
@@ -24,6 +24,6 @@ data:
     label_columns:
       - ltable_id
       - rtable_id
-    batch_size: 32
+    batch_size: 128
     num_workers: 0
     pin_memory: true
