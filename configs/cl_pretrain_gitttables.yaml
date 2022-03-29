@@ -17,7 +17,7 @@ model:
 data:
   class_path: src.datamodules.git_tables.GitTables
   init_args:
-    data_dir: ./data/gittables/
+    data_dir: ./data/gittables/processed/
     data_files: null
     batch_size: 32
     num_workers: 0

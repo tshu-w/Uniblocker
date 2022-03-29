@@ -12,8 +12,8 @@ from transformers.data.data_collator import DefaultDataCollator
 class GitTables(LightningDataModule):
     def __init__(
         self,
-        data_dir: str = "./data/gittables/",
-        data_files: Optional[list[str]] = None,  # ["dwarf_tables.jsonl"],
+        data_dir: str = "./data/gittables/processed/",
+        data_files: Optional[list[str]] = None,
         batch_size: int = 32,
         num_workers: int = 0,
         pin_memory: bool = False,
@@ -37,7 +37,6 @@ class GitTables(LightningDataModule):
             )
 
             convert_to_features = self.trainer.model.convert_to_features
-            feature_columns = getattr(self.trainer.model, "feature_columns", None)
             preprocess_fn = self._preprocess
             preprocess = lambda x: convert_to_features(preprocess_fn(x))
 
