@@ -47,7 +47,7 @@ class EvaluationLoop(EvaluationLoop):
         }
         self.trainer.model.log_dict(results)
 
-        self.outputs = [results]
+        self._outputs = [results]
 
     @property
     def num_dataloaders(self):
@@ -59,7 +59,7 @@ class EvaluationLoop(EvaluationLoop):
 
     @property
     def done(self) -> bool:
-        return self.outputs
+        return self._outputs
 
     def encode(self, batch: dict[list]):
         model = self.trainer.model
