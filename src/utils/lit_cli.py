@@ -55,7 +55,7 @@ class LitCLI(LightningCLI):
         if isinstance(self.datamodule, Matching):
             fit_loop = self.trainer.fit_loop
             epoch_loop = fit_loop.epoch_loop
-            epoch_loop.connect(val_loop=EvaluationLoop())
+            epoch_loop.connect(val_loop=EvaluationLoop(verbose=False))
             fit_loop.connect(epoch_loop=epoch_loop)
             self.trainer.fit_loop = fit_loop
 

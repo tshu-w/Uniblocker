@@ -1,19 +1,32 @@
 from typing import Any
 
 import numpy as np
-from pytorch_lightning.loops.dataloader.evaluation_loop import EvaluationLoop
+from pytorch_lightning.loops.dataloader import evaluation_loop
 from pytorch_lightning.utilities import move_data_to_device
 from torch.utils.data.dataloader import default_collate
 from tqdm import tqdm
 
 
-class EvaluationLoop(EvaluationLoop):
-    def __init__(self, k: int = 50) -> None:
-        super().__init__()
+class EvaluationLoop(evaluation_loop.EvaluationLoop):
+    def __init__(self, verbose: bool = True, k: int = 10) -> None:
+        super().__init__(verbose)
 
         self.k = k
 
+    def on_run_start(self, *args: Any, **kwargs: Any) -> None:
+        """Runs the ``_on_evaluation_model_eval``, ``_on_evaluation_start`` and ``_on_evaluation_epoch_start``
+        hooks."""
+        # hook
+        self._on_evaluation_model_eval()
+        self.trainer.lightning_module.zero_grad()
+        self._on_evaluation_start()
+        self._on_evaluation_epoch_start()
+
+    def on_advance_start(self, *args: Any, **kwargs: Any) -> None:
+        ...
+
     def advance(self, *args: Any, **kwargs: Any) -> None:
+        """Performs evaluation on one single dataloader."""
         # required for logging
         self.trainer.lightning_module._current_fx_name = "validation_step"
         self.set_format()
@@ -47,11 +60,12 @@ class EvaluationLoop(EvaluationLoop):
         }
         self.trainer.model.log_dict(results)
 
-        self._outputs = [results]
+        # store batch level output per dataloader
+        self._outputs.append(results)
 
-    @property
-    def num_dataloaders(self):
-        return 1
+        if not self.trainer.sanity_checking:
+            # indicate the loop has run
+            self._has_run = True
 
     @property
     def skip(self) -> bool:
