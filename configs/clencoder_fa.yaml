@@ -1,7 +1,7 @@
 name: clencoder_fodors-zagats
 seed_everything: 123
 trainer:
-  max_epochs: 10 # 6
+  max_epochs: 5
 model:
   class_path: src.models.cl_encoder.CLEncoder
   init_args:
@@ -24,6 +24,6 @@ data:
     label_columns:
       - ltable_id
       - rtable_id
-    batch_size: 128
+    batch_size: 64
     num_workers: 0
     pin_memory: true
