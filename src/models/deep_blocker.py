@@ -28,7 +28,7 @@ class DeepBlocker(LightningModule):
         learning_rate: float = 1e-3,
     ):
         super().__init__()
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["activations"])
 
         if not isinstance(hidden_dims, list):
             hidden_dims = [hidden_dims]
@@ -57,8 +57,8 @@ class DeepBlocker(LightningModule):
         self.convert_to_features = get_aggregator(aggregator_type)(
             tokenizer=tokenizer, embedder=embedder
         )
-        self.feature_columns = ["embeddings"]
-        self.collate_fn = lambda batch: default_collate(batch)["embeddings"]
+        self.feature_columns = ["features"]
+        self.collate_fn = lambda batch: default_collate(batch)["features"]
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.encoder(x)

@@ -42,7 +42,7 @@ class AverageAggregator(Aggregator):
                 )
             )
 
-        return {"embeddings": embeddings}
+        return {"features": embeddings}
 
 
 class SIFAggregator(Aggregator):
@@ -90,7 +90,7 @@ class SIFAggregator(Aggregator):
             assert (embeddings.dot(pc.transpose()) * pc == embeddings @ pc.T * pc).all()
             embeddings = embeddings - embeddings @ pc.T * pc
 
-        return {"embeddings": embeddings}
+        return {"features": embeddings}
 
 
 def get_aggregator(type: AGGREGATOR_TYPE) -> Aggregator:
