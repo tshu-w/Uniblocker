@@ -41,6 +41,7 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
                 self.encode,
                 batched=True,
                 batch_size=batch_size,
+                load_from_cache_file=False,
             )
             datasets[i].add_faiss_index(column="embeddings")
             datasets[i].reset_format()
