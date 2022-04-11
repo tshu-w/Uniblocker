@@ -1,4 +1,4 @@
-name: clencoder_walmart-amazon
+name: simcse_walmart-amazon
 seed_everything: 123
 trainer:
   max_epochs: 5
