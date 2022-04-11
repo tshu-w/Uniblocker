@@ -1,2 +1,2 @@
-from .cl_encoder import CLEncoder
-from .deep_blocker import DeepBlocker
+from .deepblocker import DeepBlocker
+from .simcse import SimCSE

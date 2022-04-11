@@ -9,7 +9,7 @@ trainer:
         save_top_k: -1
         every_n_train_steps: 50
 model:
-  class_path: src.models.cl_encoder.CLEncoder
+  class_path: src.models.simcse.SimCSE
   init_args:
     model_name_or_path: models/bert-base-uncased
     max_length: 256

@@ -2,7 +2,7 @@ seed_everything: 1234
 trainer:
   max_epochs: 50
 model:
-  class_path: src.models.deep_blocker.DeepBlocker
+  class_path: src.models.deepblocker.DeepBlocker
   init_args:
     tokenizer: basic_english
     fasttext_model_path: ./models/wiki.en/wiki.en.bin
