@@ -19,7 +19,7 @@ model:
     warmup_steps: 0
     weight_decay: 0.0
 data:
-  class_path: src.datamodules.git_tables.GitTables
+  class_path: src.datamodules.gittables.GitTables
   init_args:
     data_dir: ./data/gittables/processed/
     data_files: null

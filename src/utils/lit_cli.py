@@ -12,7 +12,7 @@ from pytorch_lightning.trainer.states import TrainerFn
 from pytorch_lightning.utilities.cli import LightningArgumentParser, LightningCLI
 from pytorch_lightning.utilities.metrics import metrics_to_scalars
 
-from src.datamodules import Matching
+from src.datamodules import DeepMatcher
 from src.utils.evaluation_loop import EvaluationLoop
 
 
@@ -58,7 +58,7 @@ class LitCLI(LightningCLI):
                 logger.init_args.version = timestamp
 
     def before_run(self):
-        if isinstance(self.datamodule, Matching):
+        if isinstance(self.datamodule, DeepMatcher):
             # fit_loop = self.trainer.fit_loop
             # epoch_loop = fit_loop.epoch_loop
             # epoch_loop.connect(val_loop=EvaluationLoop(verbose=False))

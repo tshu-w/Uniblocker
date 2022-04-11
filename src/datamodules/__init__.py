@@ -1,2 +1,2 @@
-from .git_tables import GitTables
-from .matching import Matching
+from .deepmatcher import DeepMatcher
+from .gittables import GitTables

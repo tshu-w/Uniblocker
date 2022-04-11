@@ -18,7 +18,7 @@ model:
         inplace: false
     learning_rate: 0.001
 data:
-  class_path: src.datamodules.matching.Matching
+  class_path: src.datamodules.deepmatcher.DeepMatcher
   init_args:
     data_dir: ./data/deepmatcher/
     dataset: Structured/Fodors-Zagats

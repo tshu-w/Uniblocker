@@ -15,7 +15,7 @@ warnings.filterwarnings(
 )
 
 
-class Matching(LightningDataModule):
+class DeepMatcher(LightningDataModule):
     def __init__(
         self,
         data_dir: str = "./data/deepmatcher/",
