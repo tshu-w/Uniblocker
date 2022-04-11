@@ -7,7 +7,7 @@ from string import Template
 
 PROJECT_DIR = Path(__file__).parent.parent
 DATA_DIR = PROJECT_DIR / "data" / "deepmatcher"
-EXP_DIR = PROJECT_DIR / "results" / "logs" / "clencoder"
+EXP_DIR = PROJECT_DIR / "results" / "logs" / "simcse"
 EXP_DIR.mkdir(parents=True, exist_ok=True)
 
 DEFAULT_ARGS = {
@@ -16,7 +16,7 @@ DEFAULT_ARGS = {
 EXPT_TMP = Template(
     """{
   "data": {
-    "class_path": "src.datamodules.matching.Matching",
+    "class_path": "src.datamodules.deepmatcher.DeepMatcher",
     "init_args": {
       "data_dir": "./data/deepmatcher/",
       "dataset": "${dataset}",
@@ -25,7 +25,7 @@ EXPT_TMP = Template(
     }
   },
   "seed": "${seed}",
-  "config": "clencoder.yaml",
+  "config": "simcse.yaml",
   "ckpt_path": "${ckpt_path}"
 }"""
 )
@@ -38,7 +38,7 @@ for dir in ["Structured", "Dirty", "Textual"]:
             (
                 Path("./results")
                 / "fit"
-                / "clencoder"
+                / "simcse"
                 / f"{str(dataset.relative_to(DATA_DIR)).lower().replace('/', '_')}"
             ).rglob("*.ckpt")
         )
@@ -91,7 +91,7 @@ def run(exp_args, args):
         --data '{exp_args['data']}'"""
     else:
         cmd = f"""./run test \\
-        --name clencoder/{exp_name} \\
+        --name simcse/{exp_name} \\
         --config configs/{exp_args['config']} \\
         --seed_everything {exp_args['seed']} \\
         --trainer.gpus {gpu}, \\

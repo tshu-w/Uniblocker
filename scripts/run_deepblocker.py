@@ -16,7 +16,7 @@ DEFAULT_ARGS = {
 EXPT_TMP = Template(
     """{
   "data": {
-    "class_path": "src.datamodules.matching.Matching",
+    "class_path": "src.datamodules.deepmatcher.DeepMatcher",
     "init_args": {
       "data_dir": "./data/deepmatcher/",
       "dataset": "${dataset}",
