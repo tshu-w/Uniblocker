@@ -8,3 +8,6 @@ model:
     max_length: 128
     temperature: 0.05
     learning_rate: 2.0e-05
+    adam_epsilon: 1.0e-08
+    warmup_steps: 0
+    weight_decay: 0.0
