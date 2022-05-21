@@ -1,0 +1,3 @@
+[submodule "ContinuousFilteringBenchmark"]
+	path = src/vendor/ContinuousFilteringBenchmark
+	url = https://github.com/gpapadis/ContinuousFilteringBenchmark
