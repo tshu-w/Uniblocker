@@ -1,3 +1,6 @@
 [submodule "ContinuousFilteringBenchmark"]
 	path = src/vendor/ContinuousFilteringBenchmark
 	url = https://github.com/gpapadis/ContinuousFilteringBenchmark
+[submodule "JedAIToolkit"]
+	path = src/vendor/JedAIToolkit
+	url = https://github.com/scify/JedAIToolkit
