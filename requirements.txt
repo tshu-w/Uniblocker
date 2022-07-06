@@ -14,5 +14,7 @@ torchtext >= 0.11.0
 scikit-learn >= 1.0.0
 faiss-cpu
 
+pyjnius
+
 wandb
 jupyterlab
