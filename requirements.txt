@@ -8,7 +8,6 @@ transformers >= 4.20.0
 datasets >= 2.4.0
 
 fasttext >= 0.9.0
-torchtext >= 0.11.0
 scikit-learn >= 1.0.0
 faiss-cpu
 
