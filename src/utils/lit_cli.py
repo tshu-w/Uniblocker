@@ -3,7 +3,6 @@ import json
 import logging
 import os
 from collections import ChainMap, defaultdict
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -37,11 +36,8 @@ class LitCLI(LightningCLI):
     def before_instantiate_classes(self) -> None:
         config = self.config[self.subcommand]
         mode = "debug" if config.debug else self.subcommand
-        timestamp = datetime.now().strftime("%m-%dT%H%M%S")
 
-        config.trainer.default_root_dir = os.path.join(
-            "results", mode, config.name, timestamp
-        )
+        config.trainer.default_root_dir = os.path.join("results", mode)
 
         if mode == "debug":
             config.trainer.logger = None
@@ -54,8 +50,12 @@ class LitCLI(LightningCLI):
                 logger.init_args.save_dir = os.path.join(
                     logger.init_args.get("save_dir", "results"), self.subcommand
                 )
-                logger.init_args.name = config.name
-                logger.init_args.version = timestamp
+                # HACK: https://github.com/Lightning-AI/lightning/issues/14225
+                if hasattr(logger.init_args, "dir"):
+                    logger.init_args.dir = logger.init_args.save_dir
+
+                if config.name:
+                    logger.init_args.name = config.name
 
     def before_run(self):
         if isinstance(self.datamodule, DeepMatcher):
