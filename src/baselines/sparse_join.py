@@ -1,4 +1,3 @@
-from collections import namedtuple
 from pathlib import Path
 from typing import Callable, Literal, Optional, Union
 
@@ -7,56 +6,10 @@ import pandas as pd
 from jsonargparse import CLI
 from rich import print
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics import auc
 from sklearn.neighbors import NearestNeighbors
 from tqdm import tqdm
 
-Pair = namedtuple("Pair", ["id1", "id2"])
-
-
-def chunks(lst, n):
-    """Yield successive n-sized chunks from lst."""
-    for i in range(0, len(lst), n):
-        yield lst[i : i + n]
-
-
-def evaluate(
-    candidates: list[set[Pair]],
-    matches: set[Pair],
-    *,
-    threshold: float = 0.9,
-) -> dict:
-    # AP
-    cands = set()
-    precisions, recalls = [], []
-
-    for i in range(len(candidates)):
-        cands = cands | candidates[i]
-
-        tp = len(cands & matches)
-        precision = tp / len(cands)
-        recall = tp / len(matches)
-
-        precisions.append(precision)
-        recalls.append(recall)
-
-    k = -1
-    for i in range(len(candidates)):
-        precision = precisions[i]
-        recall = recalls[i]
-        if recall > threshold:
-            k = i
-            break
-
-    average_precision = auc(recalls, precisions)
-
-    return {
-        "AP": average_precision,
-        "PC": recall,
-        "PQ": precision,
-        "F1": 2 * (precision * recall) / (precision + recall),
-        "k": k,
-    }
+from src.utils import RecordPair, chunks, evaluate
 
 
 def convert_df_to_corpus(
@@ -132,7 +85,7 @@ def get_candidates(
     *,
     n_neighbors: int = 100,
     direction: Optional[Literal["forward", "reversed", "both"]] = None,
-) -> list[set[Pair]]:
+) -> list[set[RecordPair]]:
     candidates = []
     flags = set()  # Comparison Propagation
     for i in range(n_neighbors):
@@ -146,7 +99,7 @@ def get_candidates(
 
                 id1 = dfs[0].index[ind1]
                 id2 = dfs[len(dfs) - 1].index[ind2]
-                pair = Pair(id1, id2)
+                pair = RecordPair(id1, id2)
                 if id1 != id2 and pair not in flags:
                     cands.add(pair)
                     flags.add(pair)
@@ -157,7 +110,7 @@ def get_candidates(
                 ind2 = j
                 id1 = dfs[0].index[ind1]
                 id2 = dfs[1].index[ind2]
-                pair = Pair(id1, id2)
+                pair = RecordPair(id1, id2)
                 if id1 != id2 and pair not in flags:
                     cands.add(pair)
                     flags.add(pair)
@@ -181,7 +134,7 @@ def sparse_join(
     corpuses = [convert_df_to_corpus(df) for df in dfs]
 
     matches_path = str(Path(data_path) / "matches.csv")
-    matches = set(pd.read_csv(matches_path).itertuples(index=False, name="Pair"))
+    matches = set(pd.read_csv(matches_path).itertuples(index=False, name="RecordPair"))
 
     vectorizers = [fit_vectorizer(corpus) for corpus in corpuses]
     indexes = [
