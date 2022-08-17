@@ -1,17 +1,18 @@
 from typing import Any
 
 import numpy as np
+from datasets import Dataset
 from pytorch_lightning.loops.dataloader import evaluation_loop
 from pytorch_lightning.utilities import move_data_to_device
 from torch.utils.data.dataloader import default_collate
 from tqdm import tqdm
 
+from src.utils import evaluate, get_candidates
+
 
 class EvaluationLoop(evaluation_loop.EvaluationLoop):
-    def __init__(self, verbose: bool = True, k: int = 10) -> None:
+    def __init__(self, verbose: bool = True) -> None:
         super().__init__(verbose)
-
-        self.k = k
 
     def on_run_start(self, *args: Any, **kwargs: Any) -> None:
         """Runs the ``_on_evaluation_model_eval``, ``_on_evaluation_start`` and ``_on_evaluation_epoch_start``
@@ -29,36 +30,30 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
         """Performs evaluation on one single dataloader."""
         # required for logging
         self.trainer.lightning_module._current_fx_name = "validation_step"
-        self.set_format()
-        datamodule = self.trainer.datamodule
 
-        datasets = datamodule.datasets
-        batch_size = datamodule.hparams.batch_size
-        golden_pairs = datamodule.golden_pairs
+        self.build_index()
+        datasets = [d.with_format() for d in self.trainer.datamodule.datasets]
+        if len(datasets) == 1:
+            indices_list = [self.knn_join(corpus=datasets[0], index=datasets[0])]
+        else:
+            indices_list = [
+                self.knn_join(corpus=datasets[0], index=datasets[1]),
+                self.knn_join(corpus=datasets[1], index=datasets[0]),
+            ]
 
-        for i, dataset in enumerate(datamodule.datasets):
-            datasets[i] = dataset.map(
-                self.encode,
-                batched=True,
-                batch_size=batch_size,
-                load_from_cache_file=False,
-            )
-            datasets[i].add_faiss_index(column="embeddings")
-            datasets[i].reset_format()
+        index_col = self.trainer.datamodule.hparams.index_col
+        dfs = [d.to_pandas().set_index(index_col) for d in datasets]
 
-        candidate_pairs = set()
-        for record in tqdm(datasets[0]):
-            query = np.array(record["embeddings"], dtype=np.float32)
-            _scores, examples = datasets[1].get_nearest_examples(
-                index_name="embeddings", query=query, k=self.k
-            )
-            candidate_pairs |= set(zip([record["id"]] * self.k, examples["id"]))
+        n_neighbors = self.trainer.datamodule.hparams.n_neighbors
+        direction = self.trainer.datamodule.hparams.direction
+        candidates = get_candidates(
+            dfs, indices_list, n_neighbors=n_neighbors, direction=direction
+        )
+        matches = self.trainer.datamodule.matches
+        results = evaluate(candidates, matches)
 
-        self.set_format()
-        results = {
-            "recall": len(candidate_pairs & golden_pairs) / len(golden_pairs),
-            "cssr": len(candidate_pairs) / (len(datasets[0]) + len(datasets[1])),
-        }
+        assert self.trainer.datamodule.datasets[0].format["type"] == "torch"
+
         self.trainer.model.log_dict(results)
 
         # store batch level output per dataloader
@@ -87,7 +82,34 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
 
         return {"embeddings": embeddings}
 
-    def set_format(self):
-        feature_columns = getattr(self.trainer.model, "feature_columns", None)
-        for dataset in self.trainer.datamodule.datasets:
-            dataset.set_format(type="torch", columns=feature_columns)
+    def build_index(self):
+        datamodule = self.trainer.datamodule
+        datasets = datamodule.datasets
+        batch_size = datamodule.hparams.batch_size
+
+        for i, dataset in enumerate(datasets):
+            datasets[i] = dataset.map(
+                self.encode,
+                batched=True,
+                batch_size=batch_size,
+                load_from_cache_file=False,
+            )
+            datasets[i].add_faiss_index(column="embeddings")
+
+    def knn_join(
+        self,
+        *,
+        corpus: Dataset,
+        index: Dataset,
+    ) -> list[list[int]]:
+        # TODO: batch search
+        indices = []
+        n_neighbors = self.trainer.datamodule.hparams.n_neighbors
+        for record in tqdm(corpus):
+            query = np.array(record["embeddings"], dtype=np.float32)
+            _scores, examples = index.get_nearest_examples(
+                index_name="embeddings", query=query, k=n_neighbors
+            )
+            indices.append(examples["id"])
+
+        return indices

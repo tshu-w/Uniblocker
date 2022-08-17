@@ -20,8 +20,7 @@ model:
 data:
   class_path: src.datamodules.deepmatcher.DeepMatcher
   init_args:
-    data_dir: ./data/deepmatcher/
-    dataset: Structured/Fodors-Zagats
+    data_dir: ./data/deepmatcher/Structured/Fodors-Zagats
     table_files:
       - tableA.csv
       - tableB.csv

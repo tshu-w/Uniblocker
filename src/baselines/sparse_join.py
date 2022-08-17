@@ -9,7 +9,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.neighbors import NearestNeighbors
 from tqdm import tqdm
 
-from src.utils import RecordPair, chunks, evaluate
+from src.utils import chunks, evaluate, get_candidates
 
 
 def convert_df_to_corpus(
@@ -66,7 +66,7 @@ def knn_join(
     *,
     n_neighbors: Optional[int] = None,
     chunk_size: int = 128,
-) -> tuple[np.array, np.array]:
+) -> list[list[int]]:
     indices_list = []
 
     for texts in tqdm(chunks(corpus, chunk_size)):
@@ -79,62 +79,21 @@ def knn_join(
     return indices
 
 
-def get_candidates(
-    dfs: list[pd.DataFrame],
-    indices_list: list[list[list]],
-    *,
-    n_neighbors: int = 100,
-    direction: Optional[Literal["forward", "reversed", "both"]] = None,
-) -> list[set[RecordPair]]:
-    candidates = []
-    flags = set()  # Comparison Propagation
-    for i in range(n_neighbors):
-        cands = set()
-        if direction != "reversed":
-            for j in range(len(dfs[0])):
-                ind1 = j
-                ind2 = indices_list[0][j][i]
-                if len(dfs) == 1 and ind1 > ind2:
-                    ind1, ind2 = ind2, ind1
-
-                id1 = dfs[0].index[ind1]
-                id2 = dfs[len(dfs) - 1].index[ind2]
-                pair = RecordPair(id1, id2)
-                if id1 != id2 and pair not in flags:
-                    cands.add(pair)
-                    flags.add(pair)
-
-        if direction == "reversed":
-            for j in range(len(dfs[1])):
-                ind1 = indices_list[1][j][i]
-                ind2 = j
-                id1 = dfs[0].index[ind1]
-                id2 = dfs[1].index[ind2]
-                pair = RecordPair(id1, id2)
-                if id1 != id2 and pair not in flags:
-                    cands.add(pair)
-                    flags.add(pair)
-
-        candidates.append(cands)
-
-    return candidates
-
-
 def sparse_join(
-    data_path: str = "./data/blocking/cora",
+    data_dir: str = "./data/blocking/cora",
     index_col: str = "id",
     n_neighbors: int = 100,
     direction: Optional[Literal["forward", "reversed", "both"]] = None,
 ):
-    paths = sorted(Path(data_path).glob("[1-2]*.csv"))
-    assert len(paths) == 1 or direction is not None
-    assert len(paths) == 2 or direction is None
+    table_paths = sorted(Path(data_dir).glob("[1-2]*.csv"))
+    assert len(table_paths) == 1 or direction is not None
+    assert len(table_paths) == 2 or direction is None
 
-    dfs = [pd.read_csv(p, index_col=index_col) for p in paths]
+    dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
     corpuses = [convert_df_to_corpus(df) for df in dfs]
 
-    matches_path = str(Path(data_path) / "matches.csv")
-    matches = set(pd.read_csv(matches_path).itertuples(index=False, name="RecordPair"))
+    matches_path = Path(data_dir) / "matches.csv"
+    matches = set(pd.read_csv(matches_path).itertuples(index=False, name=None))
 
     vectorizers = [fit_vectorizer(corpus) for corpus in corpuses]
     indexes = [

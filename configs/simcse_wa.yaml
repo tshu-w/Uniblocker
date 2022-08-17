@@ -15,8 +15,7 @@ model:
 data:
   class_path: src.datamodules.deepmatcher.DeepMatcher
   init_args:
-    data_dir: ./data/deepmatcher/
-    dataset: Structured/Walmart-Amazon
+    data_dir: ./data/deepmatcher/Structured/Walmart-Amazon
     table_files:
       - tableA.csv
       - tableB.csv

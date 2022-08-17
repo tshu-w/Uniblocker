@@ -133,12 +133,12 @@ BLOCKING_WORKFLOWS = {
 
 
 def blocking_workflows(
-    data_path: str = "./data/blocking/cora",
+    data_dir: str = "./data/blocking/cora",
     workflow: Literal["parameter_free", "default_qgrams"] = "default_qgrams",
 ) -> dict[str, float]:
-    profiles_paths = map(str, sorted(Path(data_path).glob("[1-2]*.csv")))
+    profiles_paths = map(str, sorted(Path(data_dir).glob("[1-2]*.csv")))
     profiles_list = [get_profiles(path) for path in profiles_paths]
-    matches_path = str(Path(data_path) / "matches.csv")
+    matches_path = str(Path(data_dir) / "matches.csv")
     duplicate_propagation = get_duplicate_propagation(matches_path, profiles_list)
 
     blocks = BLOCKING_WORKFLOWS[workflow](profiles_list)
