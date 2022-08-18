@@ -1,9 +1,9 @@
-name: simcse_fodors-zagats
+name: simcse_dm_walmart-amazon
 seed_everything: 123
 trainer:
   max_epochs: 5
 model:
-  class_path: src.models.simcse.SimCSE
+  class_path: src.models.SimCSE
   init_args:
     model_name_or_path: models/bert-base-uncased
     max_length: 128
@@ -13,9 +13,9 @@ model:
     warmup_steps: 0
     weight_decay: 0.0
 data:
-  class_path: src.datamodules.deepmatcher.DeepMatcher
+  class_path: src.datamodules.DeepMatcher
   init_args:
-    data_dir: ./data/deepmatcher/Structured/Fodors-Zagats
+    data_dir: ./data/deepmatcher/Structured/Walmart-Amazon
     table_files:
       - tableA.csv
       - tableB.csv
@@ -26,6 +26,9 @@ data:
     label_columns:
       - ltable_id
       - rtable_id
+    index_col: id
+    n_neighbors: 100
+    direction: forward
     batch_size: 64
     num_workers: 0
     pin_memory: true

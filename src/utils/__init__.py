@@ -17,7 +17,7 @@ def get_candidates(
     indices_list: list[list[list]],
     *,
     n_neighbors: int = 100,
-    direction: Optional[Literal["forward", "reversed", "both"]] = None,
+    direction: Literal["forward", "reversed", "both"] = "forward",
 ) -> list[set[tuple[Any, Any]]]:
     candidates = []
     flags = set()  # Comparison Propagation
@@ -41,6 +41,9 @@ def get_candidates(
             for j in range(len(dfs[1])):
                 ind1 = indices_list[1][j][i]
                 ind2 = j
+                if len(dfs) == 1 and ind1 > ind2:
+                    ind1, ind2 = ind2, ind1
+
                 id1 = dfs[0].index[ind1]
                 id2 = dfs[1].index[ind2]
                 pair = id1, id2

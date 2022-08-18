@@ -1,0 +1,39 @@
+name: deepblocker_dm_fodors-zagats
+seed_everything: 123
+trainer:
+  max_epochs: 50
+model:
+  class_path: src.models.DeepBlocker
+  init_args:
+    tokenizer: basic_english
+    fasttext_model_path: ./models/wiki.en/wiki.en.bin
+    aggregator_type: sif
+    input_dim: 300
+    hidden_dims:
+      - 300
+      - 150
+    activations:
+      class_path: torch.nn.ReLU
+      init_args:
+        inplace: false
+    learning_rate: 0.001
+data:
+  class_path: src.datamodules.DeepMatcher
+  init_args:
+    data_dir: ./data/deepmatcher/Structured/Fodors-Zagats
+    table_files:
+      - tableA.csv
+      - tableB.csv
+    label_files:
+      - train.csv
+      - valid.csv
+      - test.csv
+    label_columns:
+      - ltable_id
+      - rtable_id
+    index_col: id
+    n_neighbors: 100
+    direction: forward
+    batch_size: 256
+    num_workers: 0
+    pin_memory: false

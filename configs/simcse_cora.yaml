@@ -1,3 +1,4 @@
+name: simcse_cora
 seed_everything: 123
 trainer:
   max_epochs: 5
@@ -11,3 +12,13 @@ model:
     adam_epsilon: 1.0e-08
     warmup_steps: 0
     weight_decay: 0.0
+data:
+  class_path: src.datamodules.Blocking
+  init_args:
+    data_dir: ./data/blocking/cora
+    index_col: id
+    n_neighbors: 100
+    direction: forward
+    batch_size: 64
+    num_workers: 0
+    pin_memory: true

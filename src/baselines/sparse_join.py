@@ -83,11 +83,9 @@ def sparse_join(
     data_dir: str = "./data/blocking/cora",
     index_col: str = "id",
     n_neighbors: int = 100,
-    direction: Optional[Literal["forward", "reversed", "both"]] = None,
+    direction: Literal["forward", "reversed", "both"] = "forward",
 ):
     table_paths = sorted(Path(data_dir).glob("[1-2]*.csv"))
-    assert len(table_paths) == 1 or direction is not None
-    assert len(table_paths) == 2 or direction is None
 
     dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
     corpuses = [convert_df_to_corpus(df) for df in dfs]

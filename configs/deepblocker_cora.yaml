@@ -1,9 +1,9 @@
-name: deepblocker_walmart-amazon
+name: deepblocker_cora
 seed_everything: 123
 trainer:
   max_epochs: 50
 model:
-  class_path: src.models.deepblocker.DeepBlocker
+  class_path: src.models.DeepBlocker
   init_args:
     tokenizer: basic_english
     fasttext_model_path: ./models/wiki.en/wiki.en.bin
@@ -18,18 +18,12 @@ model:
         inplace: false
     learning_rate: 0.001
 data:
-  class_path: src.datamodules.deepmatcher.DeepMatcher
+  class_path: src.datamodules.Blocking
   init_args:
-    data_dir: ./data/deepmatcher/Structured/Walmart-Amazon
-    table_files:
-      - tableA.csv
-      - tableB.csv
-    label_files:
-      - train.csv
-      - valid.csv
-      - test.csv
-    label_columns:
-      - ltable_id
-      - rtable_id
+    data_dir: ./data/blocking/cora
+    index_col: id
+    n_neighbors: 100
+    direction: forward
     batch_size: 256
     num_workers: 0
+    pin_memory: false

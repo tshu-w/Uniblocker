@@ -1,9 +1,9 @@
 import warnings
 from functools import partial
-from operator import itemgetter
 from pathlib import Path
 from typing import Literal, Optional
 
+import pandas as pd
 from datasets.load import load_dataset
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
@@ -16,13 +16,10 @@ warnings.filterwarnings(
 )
 
 
-class DeepMatcher(LightningDataModule):
+class Blocking(LightningDataModule):
     def __init__(
         self,
-        data_dir: str = "./data/deepmatcher/Structured/Walmart-Amazon",
-        table_files: list[str] = ["tableA.csv", "tableB.csv"],
-        label_files: list[str] = ["train.csv", "valid.csv", "test.csv"],
-        label_columns: list[str] = ["ltable_id", "rtable_id"],
+        data_dir: str = "./data/blocking/walmart-amazon_heter",
         index_col: str = "id",
         n_neighbors: int = 100,
         direction: Literal["forward", "reversed", "both"] = "forward",
@@ -33,16 +30,14 @@ class DeepMatcher(LightningDataModule):
         super().__init__()
         self.save_hyperparameters()
 
-        data_dir = Path(data_dir)
-        self.table_files = [data_dir / f for f in table_files]
-        self.label_files = [data_dir / f for f in label_files]
-        self.label_columns = label_columns
+        self.table_paths = sorted(Path(data_dir).glob("[1-2]*.csv"))
+        self.matches_path = Path(data_dir) / "matches.csv"
 
     def setup(self, stage: Optional[str] = None) -> None:
         if not hasattr(self, "datasets"):
             self.datasets = [
-                load_dataset(f.suffix[1:], data_files=str(f), split="train")
-                for f in self.table_files
+                load_dataset(t.suffix[1:], data_files=str(t), split="train")
+                for t in self.table_paths
             ]
 
             convert_to_features = self.trainer.model.convert_to_features
@@ -59,13 +54,9 @@ class DeepMatcher(LightningDataModule):
                 self.datasets[i].set_format(type="torch", columns=feature_columns)
 
         if not hasattr(self, "matches"):
-            label_files_suffix = self.label_files[0].suffix[1:]
-            assert all(label_files_suffix == f.suffix[1:] for f in self.label_files)
-            self.matches = load_dataset(
-                label_files_suffix, data_files=map(str, self.label_files), split="train"
+            self.matches = set(
+                pd.read_csv(self.matches_path).itertuples(index=False, name=None)
             )
-            self.matches = self.matches.filter(lambda x: x["label"] == 1)
-            self.matches = set(zip(*itemgetter(*self.label_columns)(self.matches)))
 
         self.collate_fn = getattr(self.trainer.model, "collate_fn", None)
 
