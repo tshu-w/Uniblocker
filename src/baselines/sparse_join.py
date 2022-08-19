@@ -54,7 +54,7 @@ def build_index(
         n_neighbors=n_neighbors,
         metric=metric,
     )
-    index.fit(vectorizer.fit_transform(corpus))
+    index.fit(vectorizer.transform(corpus))
 
     return index
 
