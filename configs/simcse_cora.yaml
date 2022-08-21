@@ -12,6 +12,7 @@ model:
     adam_epsilon: 1.0e-08
     warmup_steps: 0
     weight_decay: 0.0
+    scheduler_type: linear
 data:
   class_path: src.datamodules.Blocking
   init_args:
