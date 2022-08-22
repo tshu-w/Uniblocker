@@ -4,6 +4,7 @@ import numpy as np
 from datasets import Dataset
 from pytorch_lightning.loops.dataloader import evaluation_loop
 from pytorch_lightning.utilities import move_data_to_device
+from sklearn.preprocessing import normalize
 from torch.utils.data.dataloader import default_collate
 from tqdm import tqdm
 
@@ -32,7 +33,7 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
         self.trainer.lightning_module._current_fx_name = "validation_step"
 
         self.build_index()
-        datasets = [d.with_format() for d in self.trainer.datamodule.datasets]
+        datasets = [d.with_format("numpy") for d in self.trainer.datamodule.datasets]
         if len(datasets) == 1:
             indices_list = [self.knn_join(corpus=datasets[0], index=datasets[0])]
         else:
@@ -79,6 +80,7 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
         batch = move_data_to_device(collate_fn(batch), model.device)
 
         embeddings = model(batch).detach().to("cpu").numpy()
+        embeddings = normalize(embeddings).astype(np.float32)
 
         return {"embeddings": embeddings}
 
@@ -94,7 +96,7 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
                 batch_size=batch_size,
                 load_from_cache_file=False,
             )
-            datasets[i].add_faiss_index(column="embeddings")
+            datasets[i].add_faiss_index(column="embeddings", faiss_verbose=True)
 
     def knn_join(
         self,
@@ -106,7 +108,7 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
         indices = []
         n_neighbors = self.trainer.datamodule.hparams.n_neighbors
         for record in tqdm(corpus):
-            query = np.array(record["embeddings"], dtype=np.float32)
+            query = record["embeddings"]
             _scores, examples = index.get_nearest_examples(
                 index_name="embeddings", query=query, k=n_neighbors
             )
