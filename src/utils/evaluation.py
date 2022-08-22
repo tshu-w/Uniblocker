@@ -74,7 +74,7 @@ def evaluate(
         precision = precisions[i]
         recall = recalls[i]
         if recall > threshold:
-            k = i
+            k = i + 1
             break
 
     average_precision = auc(recalls, precisions)
