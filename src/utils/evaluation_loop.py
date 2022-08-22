@@ -8,7 +8,7 @@ from sklearn.preprocessing import normalize
 from torch.utils.data.dataloader import default_collate
 from tqdm import tqdm
 
-from src.utils import evaluate, get_candidates
+from src.utils import chunks, evaluate, get_candidates
 
 
 class EvaluationLoop(evaluation_loop.EvaluationLoop):
@@ -103,15 +103,15 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
         *,
         corpus: Dataset,
         index: Dataset,
+        chunk_size: int = 64,
     ) -> list[list[int]]:
-        # TODO: batch search
         indices = []
         n_neighbors = self.trainer.datamodule.hparams.n_neighbors
-        for record in tqdm(corpus):
-            query = record["embeddings"]
-            _scores, examples = index.get_nearest_examples(
-                index_name="embeddings", query=query, k=n_neighbors
+        for record in tqdm(list(chunks(corpus, chunk_size))):
+            queries = record["embeddings"]
+            _scores_lst, examples_lst = index.get_nearest_examples_batch(
+                index_name="embeddings", queries=queries, k=n_neighbors
             )
-            indices.append(examples["id"])
+            indices.extend([examples["id"] for examples in examples_lst])
 
         return indices
