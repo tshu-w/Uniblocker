@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Callable, Literal, Optional, Union
 
@@ -113,11 +114,24 @@ def sparse_join(
         n_neighbors=n_neighbors,
         direction=direction,
     )
-    results = evaluate(candidates, matches)
+    metrics = evaluate(candidates, matches)
 
-    print(results)
-    return results
+    print(metrics)
+    return metrics
+
+
+def save_metrics(
+    dirpath: str,
+    filename: str = "metrics.json",
+    *args,
+    **kwargs,
+):
+    metrics = sparse_join(*args, **kwargs)
+    metrics_str = json.dumps(metrics, ensure_ascii=False, indent=2)
+    metrics_file = Path(dirpath) / filename
+    with metrics_file.open("w") as f:
+        f.write(metrics_str)
 
 
 if __name__ == "__main__":
-    CLI(sparse_join)
+    CLI([sparse_join, save_metrics])
