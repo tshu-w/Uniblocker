@@ -32,15 +32,18 @@ class AverageAggregator(Aggregator):
         embeddings = []
         texts = serialize(table["record"])
         for text in texts:
-            embeddings.append(
-                np.mean(
-                    [
-                        self.embedder.get_word_vector(token)
-                        for token in self.tokenizer(text)
-                    ],
+            embedding_list = [
+                self.embedder.get_word_vector(token) for token in self.tokenizer(text)
+            ]
+            if embedding_list:
+                embedding = np.mean(
+                    embedding_list,
                     axis=0,
                 )
-            )
+            else:
+                embedding = np.empty((self.embedder.get_dimension(),))
+
+            embeddings.append(embedding)
 
         return {"features": embeddings}
 
@@ -60,6 +63,7 @@ class SIFAggregator(Aggregator):
         texts = serialize(table["record"])
         for text in texts:
             token_counter.update(self.tokenizer(text))
+
         token_count = sum(token_counter.values())
 
         token_weight = {}
@@ -72,15 +76,19 @@ class SIFAggregator(Aggregator):
 
         embeddings = []
         for text in texts:
-            embeddings.append(
-                np.mean(
-                    [
-                        token_weight[token] * self.embedder.get_word_vector(token)
-                        for token in self.tokenizer(text)
-                    ],
+            embedding_list = [
+                token_weight[token] * self.embedder.get_word_vector(token)
+                for token in self.tokenizer(text)
+            ]
+            if embedding_list:
+                embedding = np.mean(
+                    embedding_list,
                     axis=0,
                 )
-            )
+            else:
+                embedding = np.empty((self.embedder.get_dimension(),))
+
+            embeddings.append(embedding)
 
         if self.remove_pc:
             embeddings = np.array(embeddings)
