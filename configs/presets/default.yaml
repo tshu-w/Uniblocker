@@ -5,7 +5,7 @@ trainer:
   logger:
     class_path: WandbLogger
     init_args:
-      project: "universe-blocker"
+      project: "universal-blocker"
       save_dir: "results"
   accelerator: "auto"
   devices: 1
