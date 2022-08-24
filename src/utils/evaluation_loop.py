@@ -105,13 +105,15 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
         index: Dataset,
         chunk_size: int = 64,
     ) -> list[list[int]]:
-        indices = []
+        indices_list = []
         n_neighbors = self.trainer.datamodule.hparams.n_neighbors
         for record in tqdm(list(chunks(corpus, chunk_size))):
             queries = record["embeddings"]
-            _scores_lst, examples_lst = index.get_nearest_examples_batch(
+            _scores, indices = index.search_batch(
                 index_name="embeddings", queries=queries, k=n_neighbors
             )
-            indices.extend([examples["id"] for examples in examples_lst])
+            indices_list.append(indices)
+
+        indices = np.concatenate(indices_list).tolist()
 
         return indices

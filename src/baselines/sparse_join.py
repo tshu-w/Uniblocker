@@ -69,7 +69,6 @@ def knn_join(
     chunk_size: int = 128,
 ) -> list[list[int]]:
     indices_list = []
-
     for texts in tqdm(chunks(corpus, chunk_size)):
         vectors = vectorizer.transform(texts)
         _distances, indices = index.kneighbors(vectors, n_neighbors=n_neighbors)
