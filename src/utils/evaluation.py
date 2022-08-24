@@ -6,7 +6,7 @@ from sklearn.metrics import auc
 
 def get_candidates(
     dfs: list[pd.DataFrame],
-    indices_list: list[list[list]],
+    indices_list: list[list[list[int]]],
     *,
     n_neighbors: int = 100,
     direction: Literal["forward", "reversed", "both"] = "forward",
