@@ -31,13 +31,13 @@ def get_candidates(
 
         if direction == "reversed":
             for j in range(len(dfs[1])):
-                ind1 = indices_list[1][j][i]
+                ind1 = indices_list[len(dfs) - 1][j][i]
                 ind2 = j
                 if len(dfs) == 1 and ind1 > ind2:
                     ind1, ind2 = ind2, ind1
 
                 id1 = dfs[0].index[ind1]
-                id2 = dfs[1].index[ind2]
+                id2 = dfs[len(dfs) - 1].index[ind2]
                 pair = id1, id2
                 if id1 != id2 and pair not in flags:
                     cands.add(pair)
@@ -55,9 +55,8 @@ def evaluate(
     threshold: float = 0.9,
 ) -> dict:
     cands = set()
-    precisions, recalls = [], []
+    precisions, recalls = [1], [0]
 
-    reciprocal_rank = 0
     for i in range(len(candidates)):
         cands = cands | candidates[i]
 
@@ -69,10 +68,10 @@ def evaluate(
         recalls.append(recall)
 
     k = 0
-    for i in range(len(candidates)):
+    for i in range(len(candidates) + 1):
         precision = precisions[i]
         recall = recalls[i]
-        k = i + 1
+        k = i
         if recall > threshold:
             break
 
@@ -80,7 +79,6 @@ def evaluate(
 
     return {
         "AP": average_precision,
-        # "MRR": mean_reciprocal_rank,
         "PC": recall,
         "PQ": precision,
         "F1": 2 * (precision * recall) / (precision + recall),
