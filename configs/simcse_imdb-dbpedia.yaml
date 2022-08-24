@@ -1,4 +1,4 @@
-name: simcse_cora
+name: simcse_imdb-dbpedia
 seed_everything: 123
 trainer:
   max_epochs: 10
@@ -16,10 +16,10 @@ model:
 data:
   class_path: src.datamodules.Blocking
   init_args:
-    data_dir: ./data/blocking/cora
+    data_dir: ./data/blocking/imdb-dbpedia
     index_col: id
     n_neighbors: 100
     direction: forward
     batch_size: 64
     num_workers: 0
-    pin_memory: true
+    pin_memory: false

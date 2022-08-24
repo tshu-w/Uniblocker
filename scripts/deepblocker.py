@@ -6,40 +6,39 @@ from pathlib import Path
 from string import Template
 
 PROJECT_DIR = Path(__file__).parent.parent
-DATA_DIR = PROJECT_DIR / "data" / "deepmatcher"
-EXP_DIR = PROJECT_DIR / "results" / "logs" / "simcse"
+DATA_DIR = PROJECT_DIR / "data" / "blocking"
+EXP_DIR = PROJECT_DIR / "results" / "logs" / "deepblocker"
 EXP_DIR.mkdir(parents=True, exist_ok=True)
 
-DEFAULT_ARGS = {
-    "dataset": "Structured/Walmart-Amazon",
-}
 EXPT_TMP = Template(
     """{
   "data": {
-    "class_path": "src.datamodules.deepmatcher.DeepMatcher",
+    "class_path": "src.datamodules.Blocking",
     "init_args": {
-      "data_dir": "./data/deepmatcher/",
-      "dataset": "${dataset}",
-      "batch_size": 64,
-      "num_workers": 0
+      "data_dir": "${data_dir}",
+      "index_col": "id",
+      "n_neighbors": 100,
+      "direction": "forward",
+      "batch_size": 256,
+      "num_workers": 0,
+      "pin_memory": false
     }
   },
   "seed": "${seed}",
-  "config": "simcse.yaml",
-  "ckpt_path": "${ckpt_path}"
+  "config": "deepblocker.yaml"
 }"""
 )
 EXPTS = []
 
-for dir in ["Structured", "Dirty", "Textual"]:
-    for dataset in (DATA_DIR / dir).iterdir():
-        ckpt_path = "results/fit/cl_pretrain_gittables/03-31T075246/checkpoints/epoch=0-step=1400.ckpt"
-        kwargs = {
-            "dataset": str(dataset.relative_to(DATA_DIR)),
-            "seed": 123,
-            "ckpt_path": ckpt_path,
-        }
-        EXPTS.append(EXPT_TMP.substitute(DEFAULT_ARGS, **kwargs))
+for data_dir in DATA_DIR.iterdir():
+    if data_dir.name in ["songs", "citeseer-dblp"]:
+        continue
+
+    kwargs = {
+        "data_dir": data_dir,
+        "seed": 1234,
+    }
+    EXPTS.append(EXPT_TMP.substitute({}, **kwargs))
 
 
 def argument_parser():
@@ -58,16 +57,18 @@ def argument_parser():
     parser.add_argument(
         "--no-run", action="store_true", help="whether not running command"
     )
-    parser.add_argument("--gpus", nargs="+", default=["0"], help="availabled gpus")
+    parser.add_argument(
+        "--devices", nargs="+", default=["0"], help="availabled devices"
+    )
 
     return parser
 
 
 def run(exp_args, args):
     worker_id = int(multiprocessing.current_process().name.rsplit("-", 1)[1]) - 1
-    gpu = args.gpus[worker_id % len(args.gpus)]
+    device = args.devices[worker_id % len(args.devices)]
 
-    exp_name = str(exp_args["data"]["init_args"]["dataset"]).lower().replace("/", "_")
+    exp_name = str(Path(exp_args["data"]["init_args"]["data_dir"]).name).lower()
 
     outfile = EXP_DIR / f"{exp_name}_{exp_args['seed']}_out.log"
     errfile = EXP_DIR / f"{exp_name}_{exp_args['seed']}_err.log"
@@ -77,17 +78,15 @@ def run(exp_args, args):
         --debug \\
         --config configs/{exp_args['config']} \\
         --seed_everything {exp_args['seed']} \\
-        --trainer.gpus {gpu}, --trainer.fast_dev_run {args.fast_dev_run} \\
-        --ckpt_path '{exp_args['ckpt_path']}' \\
-        --data '{exp_args['data']}'"""
+        --trainer.devices {device}, --trainer.fast_dev_run {args.fast_dev_run} \\
+        --data \"{exp_args['data']}\""""
     else:
         cmd = f"""./run fit \\
-        --name simcse/{exp_name} \\
+        --name deepblocker/{exp_name} \\
         --config configs/{exp_args['config']} \\
         --seed_everything {exp_args['seed']} \\
-        --trainer.gpus {gpu}, \\
-        --data '{exp_args['data']}' \\
-        --ckpt_path '{exp_args['ckpt_path']}' \\
+        --trainer.devices {device}, \\
+        --data \"{exp_args['data']}\" \\
         >{outfile} 2>{errfile}
         """
 
@@ -102,7 +101,7 @@ def run(exp_args, args):
 
 if __name__ == "__main__":
     args = argument_parser().parse_args()
-    pool = multiprocessing.Pool(processes=len(args.gpus) * args.num_expt)
+    pool = multiprocessing.Pool(processes=len(args.devices) * args.num_expt)
 
     for expt in EXPTS:
         pool.apply_async(

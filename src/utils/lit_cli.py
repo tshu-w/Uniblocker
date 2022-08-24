@@ -6,7 +6,6 @@ from typing import Any, Iterable
 import shtab
 from pytorch_lightning.cli import LightningArgumentParser, LightningCLI
 
-from src.datamodules import DeepMatcher
 from src.utils.evaluation_loop import EvaluationLoop
 
 
@@ -54,18 +53,17 @@ class LitCLI(LightningCLI):
                     logger.init_args.name = config.name
 
     def before_run(self):
-        if isinstance(self.datamodule, DeepMatcher):
-            # fit_loop = self.trainer.fit_loop
-            # epoch_loop = fit_loop.epoch_loop
-            # epoch_loop.connect(val_loop=EvaluationLoop(verbose=False))
-            # fit_loop.connect(epoch_loop=epoch_loop)
-            # self.trainer.fit_loop = fit_loop
+        fit_loop = self.trainer.fit_loop
+        epoch_loop = fit_loop.epoch_loop
+        epoch_loop.connect(val_loop=EvaluationLoop(verbose=False))
+        fit_loop.connect(epoch_loop=epoch_loop)
+        self.trainer.fit_loop = fit_loop
 
-            self.trainer.test_loop = EvaluationLoop()
+        self.trainer.test_loop = EvaluationLoop()
 
-            empty_fn = lambda *args, **kwargs: None
-            self.model.validation_step = self.model.test_step = empty_fn
-            self.datamodule.val_dataloader = self.datamodule.test_dataloader = empty_fn
+        empty_fn = lambda *args, **kwargs: None
+        self.model.validation_step = self.model.test_step = empty_fn
+        self.datamodule.val_dataloader = self.datamodule.test_dataloader = empty_fn
 
     before_fit = before_validate = before_test = before_run
 

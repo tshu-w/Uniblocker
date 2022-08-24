@@ -54,11 +54,10 @@ def evaluate(
     *,
     threshold: float = 0.9,
 ) -> dict:
-    # TODO: CSSR len(tp) / len(data)
-    # TODO: MRR (mean reciprocal rank)
     cands = set()
     precisions, recalls = [], []
 
+    reciprocal_rank = 0
     for i in range(len(candidates)):
         cands = cands | candidates[i]
 
@@ -69,18 +68,19 @@ def evaluate(
         precisions.append(precision)
         recalls.append(recall)
 
-    k = -1
+    k = 0
     for i in range(len(candidates)):
         precision = precisions[i]
         recall = recalls[i]
+        k = i + 1
         if recall > threshold:
-            k = i + 1
             break
 
     average_precision = auc(recalls, precisions)
 
     return {
         "AP": average_precision,
+        # "MRR": mean_reciprocal_rank,
         "PC": recall,
         "PQ": precision,
         "F1": 2 * (precision * recall) / (precision + recall),

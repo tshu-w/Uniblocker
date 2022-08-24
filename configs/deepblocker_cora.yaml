@@ -2,6 +2,7 @@ name: deepblocker_cora
 seed_everything: 123
 trainer:
   max_epochs: 50
+  limit_val_batches: 0
 model:
   class_path: src.models.DeepBlocker
   init_args:

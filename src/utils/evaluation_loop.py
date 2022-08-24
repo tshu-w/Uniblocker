@@ -1,3 +1,4 @@
+import copy
 from typing import Any
 
 import numpy as np
@@ -32,8 +33,9 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
         # required for logging
         self.trainer.lightning_module._current_fx_name = "validation_step"
 
-        self.build_index()
-        datasets = [d.with_format("numpy") for d in self.trainer.datamodule.datasets]
+        datasets = [copy.deepcopy(d) for d in self.trainer.datamodule.datasets]
+        datasets = self.build_index(datasets)
+
         if len(datasets) == 1:
             indices_list = [self.knn_join(corpus=datasets[0], index=datasets[0])]
         else:
@@ -84,9 +86,8 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
 
         return {"embeddings": embeddings}
 
-    def build_index(self):
+    def build_index(self, datasets: list[Dataset]) -> list[Dataset]:
         datamodule = self.trainer.datamodule
-        datasets = datamodule.datasets
         batch_size = datamodule.hparams.batch_size
 
         for i, dataset in enumerate(datasets):
@@ -97,6 +98,9 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
                 load_from_cache_file=False,
             )
             datasets[i].add_faiss_index(column="embeddings", faiss_verbose=True)
+            datasets[i].set_format("numpy")
+
+        return datasets
 
     def knn_join(
         self,
