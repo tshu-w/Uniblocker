@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Literal, Optional
 
 import pandas as pd
-from datasets.load import load_dataset
+from datasets.load import Dataset, load_dataset
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
 from torch.utils.data import DataLoader
@@ -14,6 +14,16 @@ from src.utils.sequential_loader import SequentialLoader
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
 )
+
+
+def get_dataset(f: Path) -> Dataset:
+    try:
+        return load_dataset(f.suffix[1:], data_files=str(f), split="train")
+    except:
+        assert hasattr(pd, f"read_{f.suffix[1:]}")
+        return Dataset.from_pandas(
+            getattr(pd, f"read_{f.suffix[1:]}")(f, low_memory=False)
+        )
 
 
 class Blocking(LightningDataModule):
@@ -35,10 +45,7 @@ class Blocking(LightningDataModule):
 
     def setup(self, stage: Optional[str] = None) -> None:
         if not hasattr(self, "datasets"):
-            self.datasets = [
-                load_dataset(t.suffix[1:], data_files=str(t), split="train")
-                for t in self.table_paths
-            ]
+            self.datasets = [get_dataset(t) for t in self.table_paths]
 
             convert_to_features = self.trainer.model.convert_to_features
             feature_columns = getattr(self.trainer.model, "feature_columns", None)
