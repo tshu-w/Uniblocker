@@ -1,4 +1,4 @@
-name: deepblocker/cora
+name: deepblocker/movies
 seed_everything: 123
 trainer:
   max_epochs: 50
@@ -21,7 +21,7 @@ model:
 data:
   class_path: src.datamodules.Blocking
   init_args:
-    data_dir: ./data/blocking/cora
+    data_dir: ./data/blocking/movies
     index_col: id
     n_neighbors: 100
     direction: forward

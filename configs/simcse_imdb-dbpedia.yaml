@@ -1,4 +1,4 @@
-name: simcse_imdb-dbpedia
+name: simcse/imdb-dbpedia
 seed_everything: 123
 trainer:
   max_epochs: 10
