@@ -5,9 +5,9 @@ import subprocess
 from pathlib import Path
 from string import Template
 
-PROJECT_DIR = Path(__file__).parent.parent
-DATA_DIR = PROJECT_DIR / "data" / "blocking"
-EXP_DIR = PROJECT_DIR / "results" / "logs" / "simcse"
+assert Path(".git").exists()
+DATA_DIR = Path(".") / "data" / "blocking"
+EXP_DIR = Path(".") / "results" / "logs" / "simcse"
 EXP_DIR.mkdir(parents=True, exist_ok=True)
 
 EXPT_TMP = Template(
