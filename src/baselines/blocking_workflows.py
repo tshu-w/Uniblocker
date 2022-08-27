@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from typing import Literal
 
@@ -149,18 +148,5 @@ def blocking_workflows(
     return metrics
 
 
-def save_metrics(
-    dirpath: str,
-    filename: str = "metrics.json",
-    *args,
-    **kwargs,
-):
-    metrics = blocking_workflows(*args, **kwargs)
-    metrics_str = json.dumps(metrics, ensure_ascii=False, indent=2)
-    metrics_file = Path(dirpath) / filename
-    with metrics_file.open("w") as f:
-        f.write(metrics_str)
-
-
 if __name__ == "__main__":
-    CLI([blocking_workflows, save_metrics])
+    CLI(blocking_workflows)
