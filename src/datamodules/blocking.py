@@ -18,12 +18,9 @@ warnings.filterwarnings(
 
 def get_dataset(f: Path) -> Dataset:
     try:
-        return load_dataset(f.suffix[1:], data_files=str(f), split="train")
+        return load_dataset("csv", data_files=str(f), split="train")
     except:
-        assert hasattr(pd, f"read_{f.suffix[1:]}")
-        return Dataset.from_pandas(
-            getattr(pd, f"read_{f.suffix[1:]}")(f, low_memory=False)
-        )
+        return Dataset.from_pandas(pd.read_csv(f, low_memory=False))
 
 
 class Blocking(LightningDataModule):
