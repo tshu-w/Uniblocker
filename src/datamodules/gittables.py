@@ -26,9 +26,16 @@ class GitTables(LightningDataModule):
             [str(Path(data_dir) / f) for f in data_files] if data_files else None
         )
 
+        from .blocking import Blocking
+
+        self.evaluate_datamodule = Blocking()
+        self.hparams.index_col = self.evaluate_datamodule.hparams.index_col
+        self.hparams.n_neighbors = self.evaluate_datamodule.hparams.n_neighbors
+        self.hparams.direction = self.evaluate_datamodule.hparams.direction
+
     def setup(self, stage: Optional[str] = None) -> None:
-        if not hasattr(self, "datasets"):
-            dataset = load_dataset(
+        if not hasattr(self, "tables"):
+            tables = load_dataset(
                 "json",
                 data_dir=self.data_dir,
                 data_files=self.data_files,
@@ -40,24 +47,29 @@ class GitTables(LightningDataModule):
             preprocess_fn = self._preprocess
             preprocess = lambda x: convert_to_features(preprocess_fn(x))
 
-            dataset = dataset.map(
+            tables = tables.map(
                 preprocess,
                 batched=True,
                 batch_size=4,
                 remove_columns=["_file", "_idx", "record"],
             )
-            self.dataset = dataset.with_format("torch")
+            self.tables = tables.with_format("torch")
 
         self.collate_fn = (
             getattr(self.trainer.model, "collate_fn", None) or DefaultDataCollator()
         )
+
+        self.evaluate_datamodule.trainer = self.trainer
+        self.evaluate_datamodule.setup()
+        self.datasets = self.evaluate_datamodule.datasets
+        self.matches = self.evaluate_datamodule.matches
 
     def prepare_data(self) -> None:
         self.setup()  # setup first to ignore cache conflict in multi processes
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return DataLoader(
-            dataset=self.dataset,
+            dataset=self.tables,
             batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
             pin_memory=self.hparams.pin_memory,
