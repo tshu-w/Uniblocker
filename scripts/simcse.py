@@ -35,8 +35,9 @@ for data_dir in DATA_DIR.iterdir():
     if data_dir.name in ["songs", "citeseer-dblp"]:
         continue
 
-    # ckpt_path = "results/fit/cl_pretrain_gittables/03-31T075246/checkpoints/epoch=0-step=1400.ckpt"
-    ckpt_path = None
+    ckpt_path = (
+        "results/fit/simcse/gittables/v8s67bco/checkpoints/epoch=0-step=1400.ckpt"
+    )
     kwargs = {
         "data_dir": data_dir,
         "seed": 123,
