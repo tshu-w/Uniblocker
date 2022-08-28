@@ -61,9 +61,9 @@ class LitCLI(LightningCLI):
 
         self.trainer.test_loop = EvaluationLoop()
 
-        empty_fn = lambda *args, **kwargs: None
-        self.model.validation_step = self.model.test_step = empty_fn
-        self.datamodule.val_dataloader = self.datamodule.test_dataloader = empty_fn
+        self.model.validation_step = self.model.test_step = lambda *args, **kwargs: None
+        self.datamodule.val_dataloader = lambda *args, **kwargs: []
+        self.datamodule.test_dataloader = lambda *args, **kwargs: []
 
     before_fit = before_validate = before_test = before_run
 
