@@ -82,5 +82,5 @@ def evaluate(
         "PC": recall,
         "PQ": precision,
         "F1": 2 * (precision * recall) / (precision + recall),
-        "k": k,
+        "K": k,
     }
