@@ -57,7 +57,10 @@ class EvaluationLoop(evaluation_loop.EvaluationLoop):
 
         assert self.trainer.datamodule.datasets[0].format["type"] == "torch"
 
-        self.trainer.model.log_dict(results)
+        if not self.trainer.validating:
+            self.trainer.model.log_dict(results)
+        else:
+            self.trainer.model.log_dict({f"val/{k}": v for k, v in results.items()})
 
         # store batch level output per dataloader
         self._outputs.append(results)
