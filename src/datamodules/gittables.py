@@ -26,13 +26,6 @@ class GitTables(LightningDataModule):
             [str(Path(data_dir) / f) for f in data_files] if data_files else None
         )
 
-        from .blocking import Blocking
-
-        self.evaluate_datamodule = Blocking()
-        self.hparams.index_col = self.evaluate_datamodule.hparams.index_col
-        self.hparams.n_neighbors = self.evaluate_datamodule.hparams.n_neighbors
-        self.hparams.direction = self.evaluate_datamodule.hparams.direction
-
     def setup(self, stage: Optional[str] = None) -> None:
         if not hasattr(self, "tables"):
             tables = load_dataset(
@@ -58,11 +51,6 @@ class GitTables(LightningDataModule):
         self.collate_fn = (
             getattr(self.trainer.model, "collate_fn", None) or DefaultDataCollator()
         )
-
-        self.evaluate_datamodule.trainer = self.trainer
-        self.evaluate_datamodule.setup()
-        self.datasets = self.evaluate_datamodule.datasets
-        self.matches = self.evaluate_datamodule.matches
 
     def prepare_data(self) -> None:
         self.setup()  # setup first to ignore cache conflict in multi processes

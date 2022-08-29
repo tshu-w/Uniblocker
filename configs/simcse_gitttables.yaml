@@ -2,12 +2,18 @@ name: simcse/gittables
 seed_everything: 123
 trainer:
   max_epochs: 1
-  max_steps: 5000
+  max_steps: 10000
+  check_val_every_n_epoch: null
   val_check_interval: 100
   callbacks+:
+    - class_path: OnlineEvaluator
+      init_args:
+        data_dir: "data/blocking/census"
     - class_path: ModelCheckpoint
       init_args:
         monitor: "val/AP"
+        filename: "step={step}-AP={val/AP:.5f}"
+        auto_insert_metric_name: false
         mode: max
         save_top_k: 5
         every_n_train_steps: 100
