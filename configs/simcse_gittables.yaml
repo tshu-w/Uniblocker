@@ -16,7 +16,6 @@ trainer:
         auto_insert_metric_name: false
         mode: max
         save_top_k: 5
-        every_n_train_steps: 100
 model:
   class_path: src.models.SimCSE
   init_args:
