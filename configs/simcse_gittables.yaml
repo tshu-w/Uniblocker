@@ -6,6 +6,7 @@ trainer:
   check_val_every_n_epoch: null
   val_check_interval: 100
   callbacks+:
+    - class_path: Metric
     - class_path: OnlineEvaluator
       init_args:
         data_dir: "data/blocking/census"
