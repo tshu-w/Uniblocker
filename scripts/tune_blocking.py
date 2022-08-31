@@ -87,12 +87,11 @@ def tune_blocking(
         "batch_size": tune.grid_search(batch_size),
     }
 
-    tune_config = tune.TuneConfig()
+    tune_config = tune.TuneConfig(reuse_actors=False)
     run_config = air.RunConfig(
         name="blocking",
         local_dir="results/ray",
         log_to_file=True,
-        verbose=1,
     )
     trainable = tune.with_parameters(
         run_cli,
