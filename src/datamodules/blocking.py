@@ -1,3 +1,4 @@
+import os
 import warnings
 from functools import partial
 from pathlib import Path
@@ -11,6 +12,7 @@ from torch.utils.data import DataLoader
 
 from src.utils.sequential_loader import SequentialLoader
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
 )
