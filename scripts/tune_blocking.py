@@ -59,6 +59,10 @@ def run_cli(config, debug: bool = True, command: str = "fit", devices: int = 1):
         }
     )
 
+    import wandb
+
+    wandb.finish()
+
 
 def tune_blocking(
     command: Literal["fit", "validate", "test", "tune", "predict"] = "fit",
@@ -87,11 +91,12 @@ def tune_blocking(
         "batch_size": tune.grid_search(batch_size),
     }
 
-    tune_config = tune.TuneConfig(reuse_actors=False)
+    tune_config = tune.TuneConfig()
     run_config = air.RunConfig(
         name="blocking",
         local_dir="results/ray",
         log_to_file=True,
+        verbose=1,
     )
     trainable = tune.with_parameters(
         run_cli,
