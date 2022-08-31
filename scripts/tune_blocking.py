@@ -105,7 +105,7 @@ def tune_blocking(
         devices=math.ceil(gpus_per_trial),
     )
     tuner = tune.Tuner(
-        tune.with_resources(trainable, resources={"cpu": 8, "gpu": gpus_per_trial}),
+        tune.with_resources(trainable, resources={"gpu": gpus_per_trial}),
         param_space=param_space,
         tune_config=tune_config,
         run_config=run_config,
