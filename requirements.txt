@@ -7,13 +7,13 @@ shtab >= 1.5.4
 transformers >= 4.20.0
 datasets >= 2.4.0
 
-pytorch-metric-learning
-
 fasttext >= 0.9.0
 scikit-learn >= 1.0.0
 faiss-cpu
 
 pyjnius
+pytorch-metric-learning
 
+ray[tune]
 wandb
 jupyterlab
