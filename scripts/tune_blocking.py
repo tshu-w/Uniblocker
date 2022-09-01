@@ -7,9 +7,7 @@ import sys
 from pathlib import Path
 from typing import Literal, Optional, Union
 
-import torch
 from jsonargparse import CLI
-from pytorch_lightning.utilities import device_parser
 from ray import air, tune
 
 sys.path.append(str(Path(__file__).parents[1]))
@@ -17,12 +15,10 @@ sys.path.append(str(Path(__file__).parents[1]))
 from src.utils.lit_cli import LitCLI
 
 assert Path(".git").exists()
+os.environ["PL_DISABLE_FORK"] = "1"
 
 
 def run_cli(config, debug: bool = True, command: str = "fit", devices: int = 1):
-    # https://github.com/Lightning-AI/lightning/pull/14319
-    device_parser.num_cuda_devices = torch.cuda.device_count
-    device_parser.is_cuda_available = torch.cuda.is_available
     os.chdir(os.environ["TUNE_ORIG_WORKING_DIR"])
 
     exp_name = f"{Path(config['config_file']).stem}/{Path(config['data_dir']).name}"
