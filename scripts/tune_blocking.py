@@ -67,11 +67,12 @@ def tune_blocking(
     seed: list[int] = [123],
     ckpt_path: list[Optional[str]] = [None],
     config_file: list[str] = ["configs/simcse.yaml"],
+    data_dirs: list[str] = [],
     n_neighbors: list[int] = [100],
     direction: list[Literal["forward", "reversed", "both"]] = ["forward"],
     batch_size: list[int] = [32],
 ):
-    data_dirs = [
+    data_dirs = data_dirs or [
         str(d)
         for d in (Path(".") / "data" / "blocking").iterdir()
         if d.name not in ["songs", "citeseer-dblp"]
