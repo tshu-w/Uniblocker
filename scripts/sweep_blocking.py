@@ -25,7 +25,7 @@ def run_cli(config, debug: bool = True, command: str = "fit", devices: int = 1):
     data_kwargs = {
         "class_path": "src.datamodules.Blocking",
         "init_args": {
-            "data_dir": str(config["data_dir"]),
+            "data_dir": config["data_dir"],
             "n_neighbors": config["n_neighbors"],
             "direction": config["direction"],
             "batch_size": config["batch_size"],
@@ -45,7 +45,7 @@ def run_cli(config, debug: bool = True, command: str = "fit", devices: int = 1):
             ["--trainer.devices", f"{devices}"],
             ["--ckpt_path", f"{ckpt_path}"],
             ["--data", f"{data}"],
-            ["--trainer.fast_dev_run", "5", "--debug"] if debug else [],
+            ["--debug"] if debug else [],
         )
     )
     print(shlex.join(sys.argv))
@@ -60,7 +60,7 @@ def run_cli(config, debug: bool = True, command: str = "fit", devices: int = 1):
     wandb.finish()
 
 
-def tune_blocking(
+def sweep_blocking(
     command: Literal["fit", "validate", "test", "tune", "predict"] = "fit",
     debug: bool = False,
     gpus_per_trial: Union[int, float] = 1,
@@ -111,15 +111,15 @@ def tune_blocking(
 
 
 def fit(*args, **kwargs):
-    tune_blocking(command="fit", *args, **kwargs)
+    sweep_blocking(command="fit", *args, **kwargs)
 
 
 def validate(*args, **kwargs):
-    tune_blocking(command="validate", *args, **kwargs)
+    sweep_blocking(command="validate", *args, **kwargs)
 
 
 def test(*args, **kwargs):
-    tune_blocking(command="test", *args, **kwargs)
+    sweep_blocking(command="test", *args, **kwargs)
 
 
 if __name__ == "__main__":
