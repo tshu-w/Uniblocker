@@ -65,12 +65,12 @@ def sweep_blocking(
     debug: bool = False,
     gpus_per_trial: Union[int, float] = 1,
     seed: list[int] = [123],
-    ckpt_path: list[Optional[str]] = [None],
-    config_file: list[str] = ["configs/simcse.yaml"],
+    ckpt_paths: list[Optional[str]] = [None],
+    config_files: list[str] = ["configs/simcse.yaml"],
     data_dirs: list[str] = [],
     n_neighbors: list[int] = [100],
-    direction: list[Literal["forward", "reversed", "both"]] = ["forward"],
-    batch_size: list[int] = [32],
+    directions: list[Literal["forward", "reversed", "both"]] = ["forward"],
+    batch_sizes: list[int] = [32],
 ):
     data_dirs = data_dirs or [
         str(d)
@@ -80,12 +80,12 @@ def sweep_blocking(
 
     param_space = {
         "seed": tune.grid_search(seed),
-        "ckpt_path": tune.grid_search(ckpt_path),
-        "config_file": tune.grid_search(config_file),
+        "ckpt_path": tune.grid_search(ckpt_paths),
+        "config_file": tune.grid_search(config_files),
         "data_dir": tune.grid_search(data_dirs),
         "n_neighbors": tune.grid_search(n_neighbors),
-        "direction": tune.grid_search(direction),
-        "batch_size": tune.grid_search(batch_size),
+        "direction": tune.grid_search(directions),
+        "batch_size": tune.grid_search(batch_sizes),
     }
 
     tune_config = tune.TuneConfig()
