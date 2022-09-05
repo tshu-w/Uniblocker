@@ -40,6 +40,8 @@ class SimCLR(LightningModule):
         warmup_steps: int = 0,
         weight_decay: float = 0.0,
         scheduler_type: str = "linear",
+        hidden_dim: Optional[int] = None,
+        output_dim: Optional[int] = 128,
     ) -> None:
         super().__init__()
         self.save_hyperparameters()
@@ -56,8 +58,8 @@ class SimCLR(LightningModule):
         config = self.model.config
         self.projection = Projection(
             input_dim=config.hidden_size,
-            hidden_dim=config.hidden_size,
-            output_dim=config.hidden_size,
+            hidden_dim=hidden_dim or config.hidden_size,
+            output_dim=output_dim or config.hidden_size,
         )
 
         self.loss_func = losses.NTXentLoss(temperature=temperature)
