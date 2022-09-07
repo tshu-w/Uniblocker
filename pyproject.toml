@@ -16,6 +16,12 @@ all = true
 # https://github.com/microsoft/pyright
 [tool.pyright]
 include = ["src"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "src/vendor",
+]
 venv = "blocking"
 typeCheckingMode = "off"
-useLibraryCodeForTypes = true
+useLibraryCodeForTypes = false
