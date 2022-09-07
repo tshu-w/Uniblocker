@@ -3,8 +3,8 @@ channels:
   - conda-forge
   - pytorch
 dependencies:
-  - maven=3.8.1
-  - openjdk=8.0.152
-  - python=3.9.12
+  - maven=3.8
+  - openjdk=8.0
+  - python=3.9
   - pip:
       - --requirement requirements.txt
