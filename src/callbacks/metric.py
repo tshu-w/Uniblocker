@@ -43,13 +43,11 @@ class Metric(Callback):
 
                 val_metrics = {}
                 if trainer._data_connector._val_dataloader_source.is_defined():
-                    trainer.callbacks = []
                     trainer.validate(**fn_kwargs)
                     val_metrics = metrics_to_scalars(trainer.logged_metrics)
 
                 test_metrics = {}
                 if trainer._data_connector._test_dataloader_source.is_defined():
-                    trainer.callbacks = []
                     trainer.test(**fn_kwargs)
                     test_metrics = metrics_to_scalars(trainer.logged_metrics)
 

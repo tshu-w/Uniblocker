@@ -17,11 +17,11 @@ class OnlineEvaluator(Callback):
 
     def setup(
         self,
-        trainer: "pl.Trainer",
-        pl_module: "pl.LightningModule",
+        trainer: pl.Trainer,
+        module: pl.LightningModule,
         stage: Optional[str] = None,
     ) -> None:
-        datamodule = trainer.datamodule or pl_module
+        datamodule = trainer.datamodule or module
         datamodule.hparams.index_col = self.datamodule.hparams.index_col
         datamodule.hparams.n_neighbors = self.datamodule.hparams.n_neighbors
         datamodule.hparams.direction = self.datamodule.hparams.direction
