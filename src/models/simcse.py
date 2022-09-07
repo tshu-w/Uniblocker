@@ -40,6 +40,11 @@ class SimCSE(LightningModule):
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
         x = batch
         z1, z2 = self.forward(x), self.forward(x)
+
+        if self.trainer.strategy.strategy_name.startswith("ddp"):
+            z1 = torch.flatten(self.all_gather(z1, sync_grads=True), end_dim=1)
+            z2 = torch.flatten(self.all_gather(z2, sync_grads=True), end_dim=1)
+
         sim = (
             F.cosine_similarity(z1.unsqueeze(1), z2.unsqueeze(0), dim=-1)
             / self.temperature

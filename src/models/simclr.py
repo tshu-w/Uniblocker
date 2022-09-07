@@ -74,6 +74,10 @@ class SimCLR(LightningModule):
         z1 = self.projection(h1)
         z2 = self.projection(h2)
 
+        if self.trainer.strategy.strategy_name.startswith("ddp"):
+            z1 = torch.flatten(self.all_gather(z1, sync_grads=True), end_dim=1)
+            z2 = torch.flatten(self.all_gather(z2, sync_grads=True), end_dim=1)
+
         labels = torch.arange(len(z1), device=self.device)
         embeddings = torch.cat([z1, z2])
         labels = torch.cat([labels, labels])
