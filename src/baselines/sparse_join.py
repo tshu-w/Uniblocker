@@ -70,7 +70,8 @@ def knn_join(
     indices_list = []
     for texts in tqdm(chunks(corpus, chunk_size)):
         vectors = vectorizer.transform(texts)
-        _distances, indices = index.kneighbors(vectors, n_neighbors=n_neighbors)
+        distances, indices = index.kneighbors(vectors, n_neighbors=n_neighbors)
+        assert np.all(np.diff(distances) >= 0)
         indices_list.append(indices)
 
     indices = np.concatenate(indices_list).tolist()

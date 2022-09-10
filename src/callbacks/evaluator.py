@@ -131,9 +131,10 @@ class Evaluator(Callback):
         n_neighbors = datamodule.hparams.n_neighbors
         for record in tqdm(list(chunks(corpus, chunk_size))):
             queries = record["embeddings"]
-            _scores, indices = index.search_batch(
+            scores, indices = index.search_batch(
                 index_name="embeddings", queries=queries, k=n_neighbors
             )
+            assert np.all(np.diff(scores) >= 0)
             indices_list.append(indices)
 
         indices = np.concatenate(indices_list).tolist()
