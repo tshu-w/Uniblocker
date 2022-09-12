@@ -22,6 +22,7 @@ def run_blocking_workflows(config):
         name=f"blocking_workflows/{data_dir_name}",
         dir=str(Path("results") / "blocking_workflows"),
         config=config,
+        tags=["baseline"],
     )
     metrics = blocking_workflows(**config)
     wandb.log(metrics)

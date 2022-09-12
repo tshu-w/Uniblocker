@@ -22,6 +22,7 @@ def run_sparse_join(config):
         name=f"sparse_join/{data_dir_name}",
         dir=str(Path("results") / "sparse_join"),
         config=config,
+        tags=["baseline"],
     )
     metrics = sparse_join(**config)
     wandb.log(metrics)
