@@ -12,6 +12,7 @@ def main():
         parser_kwargs={
             "default_config_files": ["configs/presets/default.yaml"],
         },
+        save_config_overwrite=True,
     )
 
 
