@@ -99,7 +99,8 @@ class SimCSE(LightningModule):
         max_length: Optional[int] = None,
     ) -> Union[dict, Any]:
         texts = [
-            " ".join(f"{t[1] or ''}" for t in record) for record in batch["record"]
+            " ".join(str(t[1]).lower() for t in record if t[1] is not None)
+            for record in batch["record"]
         ]
         features = tokenizer(
             texts,

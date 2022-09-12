@@ -18,7 +18,7 @@ def convert_df_to_corpus(
     sep: str = "\t",
 ) -> list[str]:
     df = df.fillna("")
-    text = df.astype(str).apply(lambda row: sep.join(row), axis=1)
+    text = df.astype(str).apply(lambda row: sep.join(row).lower(), axis=1)
     corpus = text.to_list()
 
     return corpus

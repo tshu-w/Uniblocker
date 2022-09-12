@@ -8,7 +8,10 @@ AGGREGATOR_TYPE = Literal["average", "sif"]
 
 
 def serialize(records: list[list[tuple]]) -> list[str]:
-    return [" ".join(f"{t[1] or ''}" for t in record) for record in records]
+    return [
+        " ".join(str(t[1]).lower() for t in record if t[1] is not None)
+        for record in records
+    ]
 
 
 class Aggregator(ABC):
