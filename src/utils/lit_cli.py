@@ -45,6 +45,10 @@ class LitCLI(LightningCLI):
                 logger.init_args.save_dir = os.path.join(
                     logger.init_args.get("save_dir", "results"), self.subcommand
                 )
+                # HACK: https://github.com/Lightning-AI/lightning/issues/14225
+                if hasattr(logger.init_args, "dir"):
+                    logger.init_args.dir = logger.init_args.save_dir
+
                 if config.name:
                     logger.init_args.name = config.name
 
