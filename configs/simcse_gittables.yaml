@@ -7,6 +7,7 @@ trainer:
   val_check_interval: 100
   callbacks+:
     - class_path: Metric
+    - class_path: Evaluator
     - class_path: OnlineEvaluator
       init_args:
         data_dir: "data/blocking/walmart-amazon_homo"
