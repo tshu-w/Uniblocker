@@ -34,6 +34,6 @@ data:
   init_args:
     data_dir: ./data/gittables/processed/
     data_files: null
-    batch_size: 32
+    batch_size: 128
     num_workers: 0
     pin_memory: true
