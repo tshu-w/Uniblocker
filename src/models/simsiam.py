@@ -29,12 +29,13 @@ class SiamArm(nn.Module):
         self,
         encoder: nn.Module,
         input_dim: int,
-        hidden_size: int,
+        hidden_dim: int,
         output_dim: int,
     ):
+        super().__init__()
         self.encoder = encoder
-        self.projector = MLP(input_dim, hidden_size, output_dim)
-        self.predictor = MLP(output_dim, hidden_size, output_dim)
+        self.projector = MLP(input_dim, hidden_dim, output_dim)
+        self.predictor = MLP(output_dim, hidden_dim, output_dim)
 
     def forward(self, x) -> tuple[Tensor, Tensor, Tensor]:
         y = self.encoder(**x).pooler_output
@@ -43,7 +44,7 @@ class SiamArm(nn.Module):
         return y, z, h
 
 
-class Simsiam(LightningModule):
+class SimSiam(LightningModule):
     def __init__(
         self,
         model_name_or_path: str,
@@ -67,25 +68,24 @@ class Simsiam(LightningModule):
             self._convert_to_features, tokenizer=tokenizer, max_length=max_length
         )
         self.feature_columns = tokenizer.model_input_names
-        model = AutoModel.from_pretrained(model_name_or_path)
+        encoder = AutoModel.from_pretrained(model_name_or_path)
 
-        config = self.model.config
+        config = encoder.config
         self.siamarm = SiamArm(
-            encoder=model,
+            encoder=encoder,
             input_dim=config.hidden_size,
             hidden_dim=hidden_dim or config.hidden_size,
             output_dim=output_dim or config.hidden_size,
         )
 
     def forward(self, x) -> Any:
-        y, _, _ = self.siamarm(**x)
+        y, _, _ = self.siamarm(x)
         return y
 
     def cos_sim(self, a, b):
         b = b.detach()  # stop gradient of backbone + projection mlp
         a = F.normalize(a, dim=-1)
         b = F.normalize(b, dim=-1)
-        assert (-1 * (a * b).sum(-1).mean()).equal(-F.cosine_similarity(a, b).mean())
         sim = -1 * (a * b).sum(-1).mean()
         return sim
 
@@ -105,7 +105,7 @@ class Simsiam(LightningModule):
             {
                 "params": [
                     p
-                    for n, p in self.model.named_parameters()
+                    for n, p in self.siamarm.named_parameters()
                     if not any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": self.hparams.weight_decay,
@@ -113,7 +113,7 @@ class Simsiam(LightningModule):
             {
                 "params": [
                     p
-                    for n, p in self.model.named_parameters()
+                    for n, p in self.siamarm.named_parameters()
                     if any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": 0.0,

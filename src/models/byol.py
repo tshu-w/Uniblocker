@@ -36,11 +36,11 @@ class BYOL(LightningModule):
             self._convert_to_features, tokenizer=tokenizer, max_length=max_length
         )
         self.feature_columns = tokenizer.model_input_names
-        model = AutoModel.from_pretrained(model_name_or_path)
+        encoder = AutoModel.from_pretrained(model_name_or_path)
 
-        config = self.model.config
+        config = encoder.config
         self.online_network = SiamArm(
-            encoder=model,
+            encoder=encoder,
             input_dim=config.hidden_size,
             hidden_dim=hidden_dim or config.hidden_size,
             output_dim=output_dim or config.hidden_size,
@@ -49,7 +49,7 @@ class BYOL(LightningModule):
         self.weight_callback = BYOLMAWeightUpdate()
 
     def forward(self, x) -> Any:
-        y, _, _ = self.siamarm(**x)
+        y, _, _ = self.online_network(x)
         return y
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
@@ -66,7 +66,7 @@ class BYOL(LightningModule):
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
         self.weight_callback.on_train_batch_end(
-            self.trainer, self, outputs, batch, batch_idx
+            self.trainer, self, outputs, batch, batch_idx, 0
         )
 
     def configure_optimizers(self):
@@ -75,7 +75,7 @@ class BYOL(LightningModule):
             {
                 "params": [
                     p
-                    for n, p in self.model.named_parameters()
+                    for n, p in self.online_network.named_parameters()
                     if not any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": self.hparams.weight_decay,
@@ -83,7 +83,7 @@ class BYOL(LightningModule):
             {
                 "params": [
                     p
-                    for n, p in self.model.named_parameters()
+                    for n, p in self.online_network.named_parameters()
                     if any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": 0.0,
