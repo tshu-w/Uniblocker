@@ -43,7 +43,7 @@ class GitTables(LightningDataModule):
             tables = tables.map(
                 preprocess,
                 batched=True,
-                batch_size=4,
+                batch_size=self.hparams.batch_size,
                 remove_columns=["_file", "_idx", "record"],
             )
             self.tables = tables.with_format("torch")
