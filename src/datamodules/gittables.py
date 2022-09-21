@@ -68,8 +68,6 @@ class GitTables(LightningDataModule):
 
     @staticmethod
     def _preprocess(batch: dict[list]):
-        batch_size = len(next(iter(batch.values())))
-
         record = []
         for r in map(json.loads, batch["record"]):
             record.append([(k, v) for k, v in r.items()])
