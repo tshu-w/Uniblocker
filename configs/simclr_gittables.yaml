@@ -10,11 +10,11 @@ trainer:
     - class_path: Evaluator
     - class_path: OnlineEvaluator
       init_args:
-        data_dir: "data/blocking/walmart-amazon_homo"
+        data_dir: data/blocking/walmart-amazon_homo
     - class_path: ModelCheckpoint
       init_args:
-        monitor: "val/AP"
-        filename: "step={step}-AP={val/AP:.5f}"
+        monitor: val/AP
+        filename: step={step}-AP={val/AP:.5f}
         auto_insert_metric_name: false
         mode: max
         save_top_k: 5

@@ -7,7 +7,7 @@ trainer:
     - class_path: Evaluator
     - class_path: ModelCheckpoint
       init_args:
-        monitor: "val/AP"
+        monitor: val/AP
         mode: max
 model:
   class_path: src.models.SimCSE
