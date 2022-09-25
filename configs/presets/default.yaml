@@ -3,10 +3,10 @@ trainer:
   callbacks:
     - class_path: Metric
   logger:
-    class_path: WandbLogger
-    init_args:
-      project: "universal-blocker"
-      save_dir: "results"
+    - class_path: WandbLogger
+      init_args:
+        project: "universal-blocker"
+        save_dir: "results"
   accelerator: "auto"
   auto_select_gpus: true
   devices: 1
