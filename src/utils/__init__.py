@@ -1,6 +1,6 @@
 from typing import Any, Iterable, Iterator, Literal, Optional
 
-from . import loggers, shtab
+from . import loggers, tweak_shtab
 from .evaluation import evaluate, get_candidates
 
 
