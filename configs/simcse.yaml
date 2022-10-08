@@ -2,7 +2,6 @@ seed_everything: 123
 trainer:
   max_epochs: 10
   callbacks+:
-    - class_path: Metric
     - class_path: Evaluator
     - class_path: ModelCheckpoint
       init_args:
