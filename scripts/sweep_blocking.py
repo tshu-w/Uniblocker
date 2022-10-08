@@ -51,7 +51,10 @@ def run_cli(config, debug: bool = True, command: str = "fit", devices: int = 1):
     print(shlex.join(sys.argv))
     LitCLI(
         parser_kwargs={
-            "default_config_files": ["configs/presets/default.yaml"],
+            cmd: {
+                "default_config_files": ["configs/presets/default.yaml"],
+            }
+            for cmd in ["fit", "validate", "test"]
         },
         save_config_overwrite=True,
     )
