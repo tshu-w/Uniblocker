@@ -13,7 +13,7 @@ class OnlineEvaluator(Callback):
     ) -> None:
         super().__init__()
 
-        self.datamodule = Blocking(data_dir=data_dir)
+        self.datamodule = Blocking(data_dir=data_dir, batch_size=1)
 
     def setup(
         self,

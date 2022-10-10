@@ -10,6 +10,7 @@ from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
 from torch.utils.data import DataLoader
 
+from src.models import DeepBlocker
 from src.utils.sequential_loader import SequentialLoader
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -52,10 +53,15 @@ class Blocking(LightningDataModule):
             preprocess = lambda x: convert_to_features(preprocess_fn(x))
 
             for i, dataset in enumerate(self.datasets):
+                batch_size = (
+                    None
+                    if isinstance(self.trainer.model, DeepBlocker)
+                    else self.hparams.batch_size
+                )
                 self.datasets[i] = dataset.map(
                     preprocess,
                     batched=True,
-                    batch_size=None,
+                    batch_size=batch_size,
                 )
                 self.datasets[i].set_format(type="torch", columns=feature_columns)
 
