@@ -58,6 +58,18 @@ class LitCLI(LightningCLI):
     before_fit = before_validate = before_test = before_run
 
 
+def lit_cli():
+    LitCLI(
+        parser_kwargs={
+            cmd: {
+                "default_config_files": ["configs/presets/default.yaml"],
+            }
+            for cmd in ["fit", "validate", "test"]
+        },
+        save_config_overwrite=True,
+    )
+
+
 def get_cli_parser():
     # provide cli.parser for shtab.
     #
@@ -65,5 +77,9 @@ def get_cli_parser():
     # for more details see https://docs.iterative.ai/shtab/use/#cli-usage
     from jsonargparse import capture_parser
 
-    parser = capture_parser(LitCLI)
+    parser = capture_parser(lit_cli)
     return parser
+
+
+if __name__ == "__main__":
+    lit_cli()
