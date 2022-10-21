@@ -1,4 +1,3 @@
-name: deepblocker/imdb-dbpedia
 seed_everything: 123
 trainer:
   max_epochs: 50
@@ -29,4 +28,4 @@ data:
     direction: forward
     batch_size: 256
     num_workers: 0
-    pin_memory: false
+    pin_memory: true

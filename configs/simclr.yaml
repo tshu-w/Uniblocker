@@ -1,14 +1,3 @@
-seed_everything: 123
-trainer:
-  max_epochs: 10
-  callbacks+:
-    - class_path: Evaluator
-    - class_path: ModelCheckpoint
-      init_args:
-        monitor: val/AP
-        filename: step={step}-AP={val/AP:.5f}
-        auto_insert_metric_name: false
-        mode: max
 model:
   class_path: src.models.SimCLR
   init_args:

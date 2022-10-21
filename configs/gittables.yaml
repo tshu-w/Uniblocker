@@ -1,4 +1,3 @@
-name: simcse/gittables
 seed_everything: 123
 trainer:
   max_epochs: 1
@@ -17,17 +16,6 @@ trainer:
         auto_insert_metric_name: false
         mode: max
         save_top_k: 5
-model:
-  class_path: src.models.SimCSE
-  init_args:
-    model_name_or_path: models/roberta-base
-    max_length: 256
-    temperature: 0.05
-    learning_rate: 2.0e-05
-    adam_epsilon: 1.0e-08
-    warmup_steps: 0
-    weight_decay: 0.0
-    scheduler_type: linear
 data:
   class_path: src.datamodules.GitTables
   init_args:
