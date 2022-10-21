@@ -6,22 +6,21 @@ import shlex
 import sys
 from pathlib import Path
 from typing import Literal, Optional, Union
+from unittest.mock import patch
 
 from jsonargparse import CLI
 from ray import air, tune
 
 sys.path.append(str(Path(__file__).parents[1]))
 
-from src.utils.lit_cli import LitCLI
+from src.utils.lit_cli import lit_cli
 
-assert Path(".git").exists()
 os.environ["PL_DISABLE_FORK"] = "1"
 
 
 def run_cli(config, debug: bool = True, command: str = "fit", devices: int = 1):
     os.chdir(os.environ["TUNE_ORIG_WORKING_DIR"])
 
-    exp_name = f"{Path(config['config_file']).stem}/{Path(config['data_dir']).name}"
     data_kwargs = {
         "class_path": "src.datamodules.Blocking",
         "init_args": {
@@ -29,35 +28,25 @@ def run_cli(config, debug: bool = True, command: str = "fit", devices: int = 1):
             "n_neighbors": config["n_neighbors"],
             "direction": config["direction"],
             "batch_size": config["batch_size"],
-            "num_workers": 0,
-            "pin_memory": True,
         },
     }
     ckpt_path = config["ckpt_path"] or "null"
     data = json.dumps(data_kwargs)
 
-    sys.argv = list(
+    argv = list(
         itertools.chain(
             ["./run", f"{command}"],
-            ["--name", f"{exp_name}"],
             ["--config", f"{config['config_file']}"],
             ["--seed_everything", f"{config['seed']}"],
             ["--trainer.devices", f"{devices}"],
             ["--ckpt_path", f"{ckpt_path}"],
             ["--data", f"{data}"],
-            ["--debug"] if debug else [],
+            ["--trainer.fast_dev_run", "5"] if debug else [],
         )
     )
-    print(shlex.join(sys.argv))
-    LitCLI(
-        parser_kwargs={
-            cmd: {
-                "default_config_files": ["configs/presets/default.yaml"],
-            }
-            for cmd in ["fit", "validate", "test"]
-        },
-        save_config_overwrite=True,
-    )
+    print(shlex.join(argv))
+    with patch("sys.argv", argv):
+        lit_cli()
 
     import wandb
 
