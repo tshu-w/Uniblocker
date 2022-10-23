@@ -68,8 +68,11 @@ class SimCLR(LightningModule):
         return self.model(**x).pooler_output
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
-        x = batch
-        h1, h2 = self.forward(x), self.forward(x)
+        if isinstance(batch, tuple):
+            x1, x2 = batch
+        else:
+            x1 = x2 = batch
+        h1, h2 = self.forward(x1), self.forward(x2)
 
         z1 = self.projection(h1)
         z2 = self.projection(h2)

@@ -90,9 +90,12 @@ class SimSiam(LightningModule):
         return sim
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
-        x = batch
-        _, z1, h1 = self.siamarm(x)
-        _, z2, h2 = self.siamarm(x)
+        if isinstance(batch, tuple):
+            x1, x2 = batch
+        else:
+            x1 = x2 = batch
+        _, z1, h1 = self.siamarm(x1)
+        _, z2, h2 = self.siamarm(x2)
 
         loss = self.cos_sim(h1, z2) / 2 + self.cos_sim(h2, z1) / 2
         self.log("loss", loss)

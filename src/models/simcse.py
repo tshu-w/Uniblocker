@@ -38,8 +38,11 @@ class SimCSE(LightningModule):
         return self.model(**x).pooler_output
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
-        x = batch
-        z1, z2 = self.forward(x), self.forward(x)
+        if isinstance(batch, tuple):
+            x1, x2 = batch
+        else:
+            x1 = x2 = batch
+        z1, z2 = self.forward(x1), self.forward(x2)
 
         if self.trainer.strategy.strategy_name.startswith("ddp"):
             z1 = torch.flatten(self.all_gather(z1, sync_grads=True), end_dim=1)
