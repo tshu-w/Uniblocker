@@ -1,3 +1,9 @@
+seed_everything: 123
+trainer:
+  max_epochs: 10
+  callbacks+:
+    - class_path: Metric
+    - class_path: Evaluator
 model:
   class_path: src.models.SimCSE
   init_args:

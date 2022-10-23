@@ -1,11 +1,9 @@
-seed_everything: 123
 trainer:
   max_epochs: 1
   max_steps: 10000
   check_val_every_n_epoch: null
   val_check_interval: 100
   callbacks+:
-    - class_path: Evaluator
     - class_path: OnlineEvaluator
       init_args:
         data_dir: data/blocking/walmart-amazon_homo

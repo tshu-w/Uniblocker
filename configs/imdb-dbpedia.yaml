@@ -1,0 +1,10 @@
+data:
+  class_path: src.datamodules.Blocking
+  init_args:
+    data_dir: ./data/blocking/imdb-dbpedia
+    index_col: id
+    n_neighbors: 100
+    direction: forward
+    batch_size: 32
+    num_workers: 0
+    pin_memory: true
