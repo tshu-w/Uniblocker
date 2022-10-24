@@ -21,11 +21,15 @@ class LitCLI(LightningCLI):
                 logger.init_args.save_dir = os.path.join(
                     logger.init_args.get("save_dir", "results"), self.subcommand
                 )
-                exp_name = config.model.class_path.split(".")[-1]
+                exp_name = config.model.class_path.split(".")[-1].lower()
                 if hasattr(config, "data"):
-                    data_name = config.data.class_path.split(".")[-1]
+                    data_name = config.data.class_path.split(".")[-1].lower()
+                    if data_name == "blocking":
+                        data_name = config.data.init_args.data_dir.split(os.sep)[
+                            -1
+                        ].lower()
                     exp_name = f"{exp_name}/{data_name}"
-                logger.init_args.name = exp_name.lower()
+                logger.init_args.name = exp_name
 
                 # HACK: https://github.com/Lightning-AI/lightning/issues/14225
                 if hasattr(logger.init_args, "dir"):
