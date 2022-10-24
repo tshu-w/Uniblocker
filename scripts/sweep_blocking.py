@@ -26,6 +26,8 @@ def run_cli(config, debug: bool = True, command: str = "fit", devices: int = 1):
         "init_args": {
             "data_dir": config["data_dir"],
             "batch_size": config["batch_size"],
+            "num_workers": 16,
+            "pin_memory": True,
         },
     }
     ckpt_path = config["ckpt_path"] or "null"
