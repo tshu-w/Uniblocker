@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Optional
+from typing import Literal, Optional
 
 import numpy as np
 import pytorch_lightning as pl
@@ -29,8 +29,14 @@ def empty_dataloader(*args, **kwargs):
 
 
 class Evaluator(Callback):
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        n_neighbors: int = 100,
+        direction: Literal["forward", "reversed", "both"] = "forward",
+    ) -> None:
         super().__init__()
+        self.n_neighbors = n_neighbors
+        self.direction = direction
 
     def setup(
         self,
@@ -46,7 +52,7 @@ class Evaluator(Callback):
     def evaluate(self, trainer: pl.Trainer, module: pl.LightningModule) -> None:
         datamodule = trainer.datamodule or module
         index_col = datamodule.hparams.index_col
-        knn_join = partial(Evaluator.knn_join, datamodule=datamodule)
+        knn_join = partial(Evaluator.knn_join, n_neighbors=self.n_neighbors)
 
         datasets = [Dataset.from_pandas(ds.df) for ds in datamodule.datasets]
         datasets = Evaluator.build_index(
@@ -66,10 +72,8 @@ class Evaluator(Callback):
 
         dfs = [d.to_pandas().set_index(index_col) for d in datasets]
 
-        n_neighbors = datamodule.hparams.n_neighbors
-        direction = datamodule.hparams.direction
         candidates = get_candidates(
-            dfs, indices_list, n_neighbors=n_neighbors, direction=direction
+            dfs, indices_list, n_neighbors=self.n_neighbors, direction=self.direction
         )
         matches = datamodule.matches
         results = evaluate(candidates, matches)
@@ -124,14 +128,13 @@ class Evaluator(Callback):
 
     @staticmethod
     def knn_join(
-        datamodule,
+        n_neighbors: int,
         *,
         corpus: Dataset,
         index: Dataset,
         chunk_size: int = 64,
     ) -> list[list[int]]:
         indices_list = []
-        n_neighbors = datamodule.hparams.n_neighbors
         for record in tqdm(list(chunks(corpus, chunk_size))):
             queries = record["embeddings"]
             scores, indices = index.search_batch(

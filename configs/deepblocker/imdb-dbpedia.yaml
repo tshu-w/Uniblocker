@@ -3,8 +3,6 @@ data:
   init_args:
     data_dir: ./data/blocking/imdb-dbpedia
     index_col: id
-    n_neighbors: 100
-    direction: forward
     batch_size: 256
     num_workers: 0
     pin_memory: true

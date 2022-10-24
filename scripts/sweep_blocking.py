@@ -25,8 +25,6 @@ def run_cli(config, debug: bool = True, command: str = "fit", devices: int = 1):
         "class_path": "src.datamodules.Blocking",
         "init_args": {
             "data_dir": config["data_dir"],
-            "n_neighbors": config["n_neighbors"],
-            "direction": config["direction"],
             "batch_size": config["batch_size"],
         },
     }
@@ -61,8 +59,6 @@ def sweep_blocking(
     ckpt_paths: list[Optional[str]] = [None],
     config_files: list[str] = ["configs/simcse.yaml"],
     data_dirs: list[str] = [],
-    n_neighbors: list[int] = [100],
-    directions: list[Literal["forward", "reversed", "both"]] = ["forward"],
     batch_sizes: list[int] = [32],
 ):
     data_dirs = data_dirs or [
@@ -76,8 +72,6 @@ def sweep_blocking(
         "ckpt_path": tune.grid_search(ckpt_paths),
         "config_file": tune.grid_search(config_files),
         "data_dir": tune.grid_search(data_dirs),
-        "n_neighbors": tune.grid_search(n_neighbors),
-        "direction": tune.grid_search(directions),
         "batch_size": tune.grid_search(batch_sizes),
     }
 

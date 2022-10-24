@@ -1,7 +1,7 @@
 import os
 import warnings
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Optional
 
 import pandas as pd
 from pytorch_lightning import LightningDataModule
@@ -39,8 +39,6 @@ class Blocking(LightningDataModule):
         self,
         data_dir: str = "./data/blocking/walmart-amazon_heter",
         index_col: str = "id",
-        n_neighbors: int = 100,
-        direction: Literal["forward", "reversed", "both"] = "forward",
         batch_size: int = 32,
         num_workers: int = 0,
         pin_memory: bool = False,
