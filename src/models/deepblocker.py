@@ -8,10 +8,9 @@ from jsonargparse import lazy_instance
 from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.types import STEP_OUTPUT
 from torch import nn
-from torch.utils.data.dataloader import default_collate
 from torchtext.data import get_tokenizer
 
-from .modules.aggregator import AGGREGATOR_TYPE, get_aggregator
+from src.utils.aggregator import AGGREGATOR_TYPE, get_aggregator
 
 fasttext.FastText.eprint = lambda *args, **kwargs: None
 
@@ -54,11 +53,9 @@ class DeepBlocker(LightningModule):
 
         tokenizer = get_tokenizer(tokenizer)
         embedder = fasttext.load_model(str(fasttext_model_path))
-        self.convert_to_features = get_aggregator(aggregator_type)(
+        self.collate_fn = get_aggregator(aggregator_type)(
             tokenizer=tokenizer, embedder=embedder
         )
-        self.feature_columns = ["features"]
-        self.collate_fn = lambda batch: default_collate(batch)["features"]
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.encoder(x)

@@ -1,4 +1,4 @@
-seed_everything: 123
+seed_everything: 1234
 trainer:
   max_epochs: 50
   limit_val_batches: 0

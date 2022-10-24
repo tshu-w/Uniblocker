@@ -1,12 +1,13 @@
-from functools import partial
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import torch
 from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.types import STEP_OUTPUT
 from pytorch_metric_learning import losses
 from torch import nn
-from transformers import AutoModel, AutoTokenizer, PreTrainedTokenizer, get_scheduler
+from transformers import AutoModel, AutoTokenizer, get_scheduler
+
+from src.utils.collate import TransformerCollator
 
 
 class Projection(nn.Module):
@@ -49,10 +50,10 @@ class SimCLR(LightningModule):
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
         # HACK: https://github.com/huggingface/transformers/issues/14931
         tokenizer("Lorem Ipsum", truncation=True, max_length=max_length)
-        self.convert_to_features = partial(
-            self._convert_to_features, tokenizer=tokenizer, max_length=max_length
+        self.collate_fn = TransformerCollator(
+            tokenizer=tokenizer,
+            max_length=max_length,
         )
-        self.feature_columns = tokenizer.model_input_names
         self.model = AutoModel.from_pretrained(model_name_or_path)
 
         config = self.model.config
@@ -125,20 +126,3 @@ class SimCLR(LightningModule):
         scheduler = {"scheduler": scheduler, "interval": "step", "frequency": 1}
 
         return [optimizer], [scheduler]
-
-    @staticmethod
-    def _convert_to_features(
-        batch: Union[dict[str, list], list[Any]],
-        tokenizer: PreTrainedTokenizer,
-        max_length: Optional[int] = None,
-    ) -> Union[dict, Any]:
-        texts = [
-            " ".join(f"{t[1] or ''}" for t in record) for record in batch["record"]
-        ]
-        features = tokenizer(
-            texts,
-            padding="max_length",
-            truncation=True,
-            max_length=max_length,
-        )
-        return features

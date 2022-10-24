@@ -1,14 +1,12 @@
 import os
 import warnings
-from functools import partial
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 import pandas as pd
-from datasets.load import Dataset, load_dataset
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
-from torch.utils.data import DataLoader
+from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from src.models import DeepBlocker
 from src.utils.sequential_loader import SequentialLoader
@@ -19,11 +17,28 @@ warnings.filterwarnings(
 )
 
 
-def get_dataset(f: Path) -> Dataset:
-    try:
-        return load_dataset("csv", data_files=str(f), split="train")
-    except:
-        return Dataset.from_pandas(pd.read_csv(f, low_memory=False))
+def mapping2tuple(record: Union[dict, pd.Series], index_col: str) -> list[tuple]:
+    record = list(filter(lambda x: x[0] != index_col, record.items()))
+    record = list(
+        (str(t[0]).casefold(), str(t[1]).casefold()) for t in record if t[1] is not None
+    )
+    return record
+
+
+class TableDataset(Dataset):
+    def __init__(
+        self,
+        table_path: Path,
+        index_col: str = "id",
+    ):
+        self.df = pd.read_csv(table_path, low_memory=True)
+        self.index_col = index_col
+
+    def __len__(self) -> int:
+        return len(self.df)
+
+    def __getitem__(self, index) -> list[tuple]:
+        return mapping2tuple(self.df.iloc[index], self.index_col)
 
 
 class Blocking(LightningDataModule):
@@ -45,25 +60,13 @@ class Blocking(LightningDataModule):
 
     def setup(self, stage: Optional[str] = None) -> None:
         if not hasattr(self, "datasets"):
-            self.datasets = [get_dataset(t) for t in self.table_paths]
+            self.datasets = [TableDataset(t) for t in self.table_paths]
 
-            convert_to_features = self.trainer.model.convert_to_features
-            feature_columns = getattr(self.trainer.model, "feature_columns", None)
-            preprocess_fn = partial(self._preprocess, index_col=self.hparams.index_col)
-            preprocess = lambda x: convert_to_features(preprocess_fn(x))
-
-            for i, dataset in enumerate(self.datasets):
-                batch_size = (
-                    None
-                    if isinstance(self.trainer.model, DeepBlocker)
-                    else self.hparams.batch_size
-                )
-                self.datasets[i] = dataset.map(
-                    preprocess,
-                    batched=True,
-                    batch_size=batch_size,
-                )
-                self.datasets[i].set_format(type="torch", columns=feature_columns)
+            if (
+                isinstance(self.trainer.model, DeepBlocker)
+                and self.trainer.model.hparams.aggregator_type == "sif"
+            ):
+                self.trainer.model.collate_fn.prepare(ConcatDataset(self.datasets))
 
         if not hasattr(self, "matches"):
             self.matches = set(
@@ -71,9 +74,6 @@ class Blocking(LightningDataModule):
             )
 
         self.collate_fn = getattr(self.trainer.model, "collate_fn", None)
-
-    def prepare_data(self) -> None:
-        self.setup()  # setup first to ignore cache conflict in multi processes
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         dataloaders = (
@@ -89,14 +89,3 @@ class Blocking(LightningDataModule):
             for dataset in self.datasets
         )
         return SequentialLoader(*dataloaders)
-
-    @staticmethod
-    def _preprocess(batch: dict[list], index_col: str):
-        columns = [c for c in batch.keys() if index_col not in c]
-        batch_size = len(next(iter(batch.values())))
-
-        record = []
-        for i in range(batch_size):
-            record.append([(c, batch[c][i]) for c in columns])
-
-        return {"record": record}

@@ -1,16 +1,17 @@
-import copy
 from functools import partial
 from typing import Optional
 
 import numpy as np
 import pytorch_lightning as pl
+from datasets import Dataset
 from pytorch_lightning import Callback
 from pytorch_lightning.utilities import move_data_to_device
 from sklearn.preprocessing import normalize
-from torch.utils.data import DataLoader, Dataset, IterableDataset
+from torch.utils.data import DataLoader, IterableDataset
 from torch.utils.data.dataloader import default_collate
 from tqdm import tqdm
 
+from src.datamodules.blocking import mapping2tuple
 from src.utils import chunks, evaluate, get_candidates
 
 
@@ -44,13 +45,16 @@ class Evaluator(Callback):
 
     def evaluate(self, trainer: pl.Trainer, module: pl.LightningModule) -> None:
         datamodule = trainer.datamodule or module
-        build_index = partial(
-            Evaluator.build_index, module=module, datamodule=datamodule
-        )
+        index_col = datamodule.hparams.index_col
         knn_join = partial(Evaluator.knn_join, datamodule=datamodule)
 
-        datasets = [copy.deepcopy(d) for d in datamodule.datasets]
-        datasets = build_index(datasets)
+        datasets = [Dataset.from_pandas(ds.df) for ds in datamodule.datasets]
+        datasets = Evaluator.build_index(
+            datasets,
+            module=module,
+            datamodule=datamodule,
+            index_col=index_col,
+        )
 
         if len(datasets) == 1:
             indices_list = [knn_join(corpus=datasets[0], index=datasets[0])]
@@ -60,7 +64,6 @@ class Evaluator(Callback):
                 knn_join(corpus=datasets[1], index=datasets[0]),
             ]
 
-        index_col = datamodule.hparams.index_col
         dfs = [d.to_pandas().set_index(index_col) for d in datasets]
 
         n_neighbors = datamodule.hparams.n_neighbors
@@ -75,8 +78,6 @@ class Evaluator(Callback):
             module.log_dict({f"val/{k}": v for k, v in results.items()}, sync_dist=True)
         else:
             module.log_dict(results, sync_dist=True)
-
-        assert datamodule.datasets[0].format["type"] == "torch"
 
     def on_validation_epoch_end(
         self, trainer: pl.Trainer, module: pl.LightningModule
@@ -93,11 +94,13 @@ class Evaluator(Callback):
         datasets: list[Dataset],
         module: pl.LightningModule,
         datamodule: pl.LightningDataModule,
+        index_col: str,
     ) -> list[Dataset]:
         def encode(batch: dict[list]):
             collate_fn = getattr(module, "collate_fn", default_collate)
 
             batch: list[dict] = [dict(zip(batch, t)) for t in zip(*batch.values())]
+            batch = [mapping2tuple(r, index_col) for r in batch]
             batch = move_data_to_device(collate_fn(batch), module.device)
 
             embeddings = module(batch).detach().to("cpu").numpy()

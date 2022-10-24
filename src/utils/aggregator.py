@@ -2,16 +2,11 @@ from abc import ABC, abstractmethod
 from typing import Counter, Literal
 
 import numpy as np
+import torch
 from sklearn.decomposition import TruncatedSVD
+from torch.utils.data import Dataset
 
 AGGREGATOR_TYPE = Literal["average", "sif"]
-
-
-def serialize(records: list[list[tuple]]) -> list[str]:
-    return [
-        " ".join(str(t[1]).lower() for t in record if t[1] is not None)
-        for record in records
-    ]
 
 
 class Aggregator(ABC):
@@ -23,17 +18,11 @@ class Aggregator(ABC):
     def __call__(self, batch):
         pass
 
-    # make Aggregator pickable
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        state.pop("embedder", None)
-        return state
-
 
 class AverageAggregator(Aggregator):
-    def __call__(self, table):
+    def __call__(self, batch: list):
         embeddings = []
-        texts = serialize(table["record"])
+        texts = [" ".join(t[1] for t in r) for r in batch]
         for text in texts:
             embedding_list = [
                 self.embedder.get_word_vector(token) for token in self.tokenizer(text)
@@ -48,7 +37,7 @@ class AverageAggregator(Aggregator):
 
             embeddings.append(embedding)
 
-        return {"features": embeddings}
+        return torch.from_numpy(np.array(embeddings))
 
 
 class SIFAggregator(Aggregator):
@@ -61,26 +50,28 @@ class SIFAggregator(Aggregator):
         self.remove_pc = remove_pc
         self.min_freq = min_freq
 
-    def __call__(self, table):
+    def prepare(self, ds: Dataset) -> None:
         token_counter = Counter()
-        texts = serialize(table["record"])
-        for text in texts:
+        texts = []
+        for idx in range(len(ds)):
+            text = " ".join(t[1] for t in ds[idx])
+            texts.append(text)
             token_counter.update(self.tokenizer(text))
 
         token_count = sum(token_counter.values())
 
-        token_weight = {}
+        self.token_weight = {}
         a = self.sif_weighting_param
         for token, frequency in token_counter.items():
             if frequency >= self.min_freq:
-                token_weight[token] = a / (a + frequency / token_count)
+                self.token_weight[token] = a / (a + frequency / token_count)
             else:
-                token_weight[token] = 1.0
+                self.token_weight[token] = 1.0
 
         embeddings = []
         for text in texts:
             embedding_list = [
-                token_weight[token] * self.embedder.get_word_vector(token)
+                self.token_weight[token] * self.embedder.get_word_vector(token)
                 for token in self.tokenizer(text)
             ]
             if embedding_list:
@@ -99,9 +90,31 @@ class SIFAggregator(Aggregator):
             svd.fit(embeddings)
             pc = svd.components_
             assert (embeddings.dot(pc.transpose()) * pc == embeddings @ pc.T * pc).all()
-            embeddings = embeddings - embeddings @ pc.T * pc
+            self.pc = pc
 
-        return {"features": embeddings}
+    def __call__(self, batch: list):
+        embeddings = []
+        texts = [" ".join(t[1] for t in r) for r in batch]
+        for text in texts:
+            embedding_list = [
+                self.token_weight[token] * self.embedder.get_word_vector(token)
+                for token in self.tokenizer(text)
+            ]
+            if embedding_list:
+                embedding = np.mean(
+                    embedding_list,
+                    axis=0,
+                )
+            else:
+                embedding = np.empty((self.embedder.get_dimension(),))
+
+            embeddings.append(embedding)
+
+        if self.remove_pc:
+            embeddings = np.array(embeddings)
+            embeddings = embeddings - embeddings @ self.pc.T * self.pc
+
+        return torch.from_numpy(np.array(embeddings))
 
 
 def get_aggregator(type: AGGREGATOR_TYPE) -> Aggregator:
