@@ -17,7 +17,7 @@ trainer:
 data:
   class_path: src.datamodules.GitTables
   init_args:
-    data_dir: ./data/gittables/processed/
+    data_dir: ./data/gittables/raw_4943312/
     data_files: null
     batch_size: 128
     num_workers: 0

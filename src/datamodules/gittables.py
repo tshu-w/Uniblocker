@@ -1,18 +1,16 @@
-import json
-from pathlib import Path
 from typing import Optional
 
-from datasets.load import load_dataset
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
 from torch.utils.data import DataLoader
-from transformers.data.data_collator import DefaultDataCollator
+
+from .datasets.gittables_dataset import GitTablesDataset
 
 
 class GitTables(LightningDataModule):
     def __init__(
         self,
-        data_dir: str = "./data/gittables/processed/",
+        data_dir: str = "./data/gittables/raw_4943312/",
         data_files: Optional[list[str]] = None,
         batch_size: int = 32,
         num_workers: int = 0,
@@ -22,38 +20,13 @@ class GitTables(LightningDataModule):
         self.save_hyperparameters()
 
         self.data_dir = data_dir
-        self.data_files = (
-            [str(Path(data_dir) / f) for f in data_files] if data_files else None
-        )
+        self.data_files = data_files
 
     def setup(self, stage: Optional[str] = None) -> None:
         if not hasattr(self, "tables"):
-            tables = load_dataset(
-                "json",
-                data_dir=self.data_dir,
-                data_files=self.data_files,
-                split="train",
-                streaming=True,
-            )
+            self.tables = GitTablesDataset(self.data_dir, self.data_files)
 
-            convert_to_features = self.trainer.model.convert_to_features
-            preprocess_fn = self._preprocess
-            preprocess = lambda x: convert_to_features(preprocess_fn(x))
-
-            tables = tables.map(
-                preprocess,
-                batched=True,
-                batch_size=self.hparams.batch_size,
-                remove_columns=["_file", "_idx", "record"],
-            )
-            self.tables = tables.with_format("torch")
-
-        self.collate_fn = (
-            getattr(self.trainer.model, "collate_fn", None) or DefaultDataCollator()
-        )
-
-    def prepare_data(self) -> None:
-        self.setup()  # setup first to ignore cache conflict in multi processes
+        self.collate_fn = getattr(self.trainer.model, "collate_fn", None)
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return DataLoader(
@@ -65,11 +38,3 @@ class GitTables(LightningDataModule):
             persistent_workers=self.hparams.num_workers > 0,
             shuffle=False,
         )
-
-    @staticmethod
-    def _preprocess(batch: dict[list]):
-        record = []
-        for r in map(json.loads, batch["record"]):
-            record.append([(k, v) for k, v in r.items()])
-
-        return {"record": record}

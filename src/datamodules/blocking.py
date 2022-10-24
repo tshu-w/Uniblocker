@@ -1,7 +1,7 @@
 import os
 import warnings
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Literal, Optional
 
 import pandas as pd
 from pytorch_lightning import LightningDataModule
@@ -9,20 +9,13 @@ from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from src.models import DeepBlocker
+from src.utils import mapping2tuple
 from src.utils.sequential_loader import SequentialLoader
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
 )
-
-
-def mapping2tuple(record: Union[dict, pd.Series], index_col: str) -> list[tuple]:
-    record = list(filter(lambda x: x[0] != index_col, record.items()))
-    record = list(
-        (str(t[0]).casefold(), str(t[1]).casefold()) for t in record if t[1] is not None
-    )
-    return record
 
 
 class TableDataset(Dataset):
