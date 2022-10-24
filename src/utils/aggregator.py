@@ -37,7 +37,7 @@ class AverageAggregator(Aggregator):
 
             embeddings.append(embedding)
 
-        return torch.from_numpy(np.array(embeddings))
+        return torch.Tensor(np.array(embeddings))
 
 
 class SIFAggregator(Aggregator):
@@ -114,7 +114,7 @@ class SIFAggregator(Aggregator):
             embeddings = np.array(embeddings)
             embeddings = embeddings - embeddings @ self.pc.T * self.pc
 
-        return torch.from_numpy(np.array(embeddings))
+        return torch.Tensor(np.array(embeddings))
 
 
 def get_aggregator(type: AGGREGATOR_TYPE) -> Aggregator:
