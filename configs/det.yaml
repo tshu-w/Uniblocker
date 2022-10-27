@@ -2,7 +2,7 @@ description: universal-blocker
 
 environment:
   image: docker.cipsup.cn/wangtianshu/universal-blocker
-  # force_pull_image: true
+  force_pull_image: true
 
 bind_mounts:
   - host_path: /shared_home/wangtianshu/data
