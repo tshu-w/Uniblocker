@@ -48,8 +48,6 @@ class SimCLR(LightningModule):
         self.save_hyperparameters()
 
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-        # HACK: https://github.com/huggingface/transformers/issues/14931
-        tokenizer("Lorem Ipsum", truncation=True, max_length=max_length)
         self.collate_fn = TransformerCollator(
             tokenizer=tokenizer,
             max_length=max_length,
