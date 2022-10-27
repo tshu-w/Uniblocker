@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Literal, Optional, Union
 from unittest.mock import patch
 
+import ray
 from jsonargparse import CLI
 from ray import air, tune
 
@@ -16,6 +17,7 @@ sys.path.append(str(Path(__file__).parents[1]))
 from src.utils.lit_cli import lit_cli
 
 os.environ["PL_DISABLE_FORK"] = "1"
+ray.init(_temp_dir=str(Path.home() / ".cache" / "ray"))
 
 
 def run_cli(config, debug: bool = True, command: str = "fit", devices: int = 1):
