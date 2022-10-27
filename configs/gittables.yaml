@@ -6,7 +6,7 @@ trainer:
   callbacks+:
     - class_path: OnlineEvaluator
       init_args:
-        data_dir: data/blocking/walmart-amazon_homo
+        data_dir: data/blocking/amazon-google
     - class_path: ModelCheckpoint
       init_args:
         monitor: val/AP
