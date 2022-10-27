@@ -4,8 +4,9 @@ import torch
 import torch.nn.functional as F
 from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.types import STEP_OUTPUT
-from transformers import AutoModel, AutoTokenizer, get_scheduler
+from transformers import AutoConfig, AutoModel, AutoTokenizer, get_scheduler
 
+from src.models.modules import Pooler
 from src.utils.collate import TransformerCollator
 
 
@@ -14,7 +15,9 @@ class SimCSE(LightningModule):
         self,
         model_name_or_path: str,
         max_length: Optional[int] = None,
-        temperature: float = 0.05,
+        temperature: float = 0.01,
+        hidden_dropout_prob: float = 0.3,
+        pooler_type: Pooler.valid_types = "cls_with_mlp",
         learning_rate: float = 2e-5,
         adam_epsilon: float = 1e-8,
         warmup_steps: int = 0,
@@ -30,10 +33,17 @@ class SimCSE(LightningModule):
             tokenizer=tokenizer,
             max_length=max_length,
         )
-        self.model = AutoModel.from_pretrained(model_name_or_path)
+        config = AutoConfig.from_pretrained(model_name_or_path)
+        config.hidden_dropout_prob = hidden_dropout_prob
+        self.model = AutoModel.from_pretrained(model_name_or_path, config=config)
+        self.pooler = Pooler(pooler_type=pooler_type, original_pooler=self.model.pooler)
+        self.model.pooler = None
 
-    def forward(self, x) -> Any:
-        return self.model(**x).pooler_output
+    def forward(self, inputs) -> Any:
+        outputs = self.model(**inputs)
+        pooler_output = self.pooler(outputs, inputs.attention_mask)
+
+        return pooler_output
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
         if isinstance(batch, tuple):
