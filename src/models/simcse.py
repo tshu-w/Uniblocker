@@ -36,12 +36,15 @@ class SimCSE(LightningModule):
         config = AutoConfig.from_pretrained(model_name_or_path)
         config.hidden_dropout_prob = hidden_dropout_prob
         self.model = AutoModel.from_pretrained(model_name_or_path, config=config)
-        self.pooler = Pooler(pooler_type=pooler_type, original_pooler=self.model.pooler)
-        self.model.pooler = None
+        self.pooler = Pooler(pooler_type=pooler_type)
+        self.with_mlp = "mlp" in pooler_type
 
     def forward(self, inputs) -> Any:
         outputs = self.model(**inputs)
         pooler_output = self.pooler(outputs, inputs.attention_mask)
+        if self.with_mlp:
+            pooled_output = self.model.pooler.dense(pooled_output)
+            pooled_output = self.model.pooler.activation(pooled_output)
 
         return pooler_output
 
