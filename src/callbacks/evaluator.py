@@ -4,10 +4,10 @@ from typing import Literal, Optional
 import numpy as np
 import py_stringmatching as sm
 import pytorch_lightning as pl
+import torch.nn.functional as F
 from datasets import Dataset
 from pytorch_lightning import Callback
 from pytorch_lightning.utilities import move_data_to_device
-from sklearn.preprocessing import normalize
 from torch.utils.data import DataLoader, IterableDataset
 from torch.utils.data.dataloader import default_collate
 from tqdm import tqdm
@@ -126,12 +126,11 @@ class Evaluator(Callback):
             texts = [" ".join([t[1] for t in l]) for l in batch]
             batch = move_data_to_device(collate_fn(batch), module.device)
 
-            embeddings = module(batch).detach().to("cpu").numpy()
-            embeddings = normalize(embeddings).astype(np.float32)
+            embeddings = F.normalize(module(batch).detach()).to("cpu").numpy()
 
             return {
-                "texts": texts,
-                "embeddings": embeddings,
+                "text": texts,
+                "embeddings": embeddings.astype(np.float32),
             }
 
         batch_size = datamodule.hparams.batch_size
@@ -164,8 +163,8 @@ class Evaluator(Callback):
                 index_name="embeddings", queries=queries, k=n_neighbors
             )
             if ensemble:
-                query_texts = record["texts"]
-                candidates_texts = [index[idx]["texts"] for idx in indices]
+                query_texts = record["text"]
+                candidates_texts = [index[idx]["text"] for idx in indices]
                 for i, s1 in enumerate(query_texts):
                     for j, s2 in enumerate(candidates_texts[i]):
                         scores[i, j] = (
