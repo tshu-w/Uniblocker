@@ -41,12 +41,12 @@ class SimCSE(LightningModule):
 
     def forward(self, inputs) -> Any:
         outputs = self.model(**inputs)
-        pooler_output = self.pooler(outputs, inputs.attention_mask)
+        pooled_output = self.pooler(outputs, inputs.attention_mask)
         if self.with_mlp:
             pooled_output = self.model.pooler.dense(pooled_output)
             pooled_output = self.model.pooler.activation(pooled_output)
 
-        return pooler_output
+        return pooled_output
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
         if isinstance(batch, tuple):
