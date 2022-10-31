@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader, IterableDataset
 from torch.utils.data.dataloader import default_collate
 from tqdm import tqdm
 
-from src.datamodules.blocking import mapping2tuple
+from src.datamodules.blocking import dict2tuples
 from src.utils import chunks, evaluate, get_candidates
 
 
@@ -122,7 +122,7 @@ class Evaluator(Callback):
             collate_fn = getattr(module, "collate_fn", default_collate)
 
             batch: list[dict] = [dict(zip(batch, t)) for t in zip(*batch.values())]
-            batch = [mapping2tuple(r, index_col) for r in batch]
+            batch = [dict2tuples(r, index_col) for r in batch]
             texts = [" ".join([t[1] for t in l]) for l in batch]
             batch = move_data_to_device(collate_fn(batch), module.device)
 

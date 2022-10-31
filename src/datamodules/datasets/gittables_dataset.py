@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 from torch.utils.data import IterableDataset
 
-from src.utils import mapping2tuple
+from src.utils import dict2tuples
 
 
 class GitTablesDataset(IterableDataset):
@@ -29,9 +29,10 @@ class GitTablesDataset(IterableDataset):
         for f in self.data_files:
             try:
                 df = pd.read_parquet(f)
+                df.columns = df.columns.str.replace("\ufeff", "")
+                df = df.fillna("")
                 df.drop_duplicates(inplace=True)
             except Exception:
                 continue
 
-            df.columns = df.columns.str.replace("\ufeff", "")
-            yield from map(mapping2tuple, df.to_dict("records"))
+            yield from map(dict2tuples, df.to_dict("records"))
