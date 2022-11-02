@@ -2,6 +2,7 @@ trainer:
   max_epochs: 1
   max_steps: 10000
   check_val_every_n_epoch: null
+  num_sanity_val_steps: 0
   val_check_interval: 100
   callbacks+:
     - class_path: OnlineEvaluator
