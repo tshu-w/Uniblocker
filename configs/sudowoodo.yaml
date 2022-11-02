@@ -5,14 +5,16 @@ trainer:
     - class_path: Metric
     - class_path: Evaluator
 model:
-  class_path: src.models.SimCLR
+  class_path: src.models.Sudowoodo
   init_args:
     model_name_or_path: models/roberta-base
     max_length: 256
     hidden_dropout_prob: 0.3
     hidden_dim: 2048
     output_dim: 4096
-    temperature: 0.01
+    temperature: 0.07
+    alpha: 0.5
+    lambd: 0.0039
     learning_rate: 2.0e-05
     adam_epsilon: 1.0e-08
     warmup_steps: 0

@@ -1,63 +1,30 @@
 from typing import Any, Optional
 
 import torch
-import torch.nn.functional as F
 from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.types import STEP_OUTPUT
-from torch import Tensor, nn
-from transformers import AutoModel, AutoTokenizer, get_scheduler
+from transformers import AutoConfig, AutoModel, AutoTokenizer, get_scheduler
 
+from src.models.modules import MLP, BarlowTwinsLoss, NTXentLoss
 from src.utils.collate import TransformerCollator
 
 
-class MLP(nn.Module):
-    def __init__(self, input_dim: int, hidden_size: int, output_dim: int) -> None:
-        super().__init__()
-        self.model = nn.Sequential(
-            nn.Linear(input_dim, hidden_size, bias=False),
-            nn.BatchNorm1d(hidden_size),
-            nn.ReLU(inplace=True),
-            nn.Linear(hidden_size, output_dim, bias=True),
-        )
-
-    def forward(self, x: Tensor) -> Tensor:
-        x = self.model(x)
-        return x
-
-
-class SiamArm(nn.Module):
-    def __init__(
-        self,
-        encoder: nn.Module,
-        input_dim: int,
-        hidden_dim: int,
-        output_dim: int,
-    ):
-        super().__init__()
-        self.encoder = encoder
-        self.projector = MLP(input_dim, hidden_dim, output_dim)
-        self.predictor = MLP(output_dim, hidden_dim, output_dim)
-
-    def forward(self, x) -> tuple[Tensor, Tensor, Tensor]:
-        y = self.encoder(**x).pooler_output
-        z = self.projector(y)
-        h = self.predictor(z)
-        return y, z, h
-
-
-class SimSiam(LightningModule):
+class Sudowoodo(LightningModule):
     def __init__(
         self,
         model_name_or_path: str,
         max_length: Optional[int] = None,
-        temperature: float = 0.05,
+        hidden_dropout_prob: float = 0.3,
+        hidden_dim: Optional[int] = 2048,
+        output_dim: Optional[int] = 4096,
+        temperature: float = 0.07,
+        alpha: float = 0.5,
+        lambd: float = 3.9e-3,
         learning_rate: float = 2e-5,
         adam_epsilon: float = 1e-8,
         warmup_steps: int = 0,
         weight_decay: float = 0.0,
         scheduler_type: str = "linear",
-        hidden_dim: Optional[int] = None,
-        output_dim: Optional[int] = 128,
     ) -> None:
         super().__init__()
         self.save_hyperparameters()
@@ -67,36 +34,37 @@ class SimSiam(LightningModule):
             tokenizer=tokenizer,
             max_length=max_length,
         )
-
-        encoder = AutoModel.from_pretrained(model_name_or_path)
-        config = encoder.config
-        self.siamarm = SiamArm(
-            encoder=encoder,
+        config = AutoConfig.from_pretrained(model_name_or_path)
+        config.hidden_dropout_prob = hidden_dropout_prob
+        self.model = AutoModel.from_pretrained(model_name_or_path, config=config)
+        self.projector = MLP(
             input_dim=config.hidden_size,
-            hidden_dim=hidden_dim or config.hidden_size,
             output_dim=output_dim or config.hidden_size,
+            hidden_dim=hidden_dim or config.hidden_size,
         )
+        self.alpha = alpha
+        self.loss_c = NTXentLoss(temperature=temperature)
+        self.loss_b = BarlowTwinsLoss(dim=self.projector.output_dim, lambd=lambd)
 
     def forward(self, x) -> Any:
-        y, _, _ = self.siamarm(x)
-        return y
-
-    def cos_sim(self, a, b):
-        b = b.detach()  # stop gradient of backbone + projection mlp
-        a = F.normalize(a, dim=-1)
-        b = F.normalize(b, dim=-1)
-        sim = -1 * (a * b).sum(-1).mean()
-        return sim
+        return self.model(**x).pooler_output
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
         if isinstance(batch, tuple):
             x1, x2 = batch
         else:
             x1 = x2 = batch
-        _, z1, h1 = self.siamarm(x1)
-        _, z2, h2 = self.siamarm(x2)
 
-        loss = self.cos_sim(h1, z2) / 2 + self.cos_sim(h2, z1) / 2
+        h1, h2 = self.forward(x1), self.forward(x2)
+        z1, z2 = self.projector(h1), self.projector(h2)
+
+        if self.trainer.strategy.strategy_name.startswith("ddp"):
+            z1 = torch.flatten(self.all_gather(z1, sync_grads=True), end_dim=1)
+            z2 = torch.flatten(self.all_gather(z2, sync_grads=True), end_dim=1)
+
+        loss_c = self.loss_c(z1, z2)
+        loss_b = self.loss_b(z1, z2)
+        loss = (1 - self.alpha) * loss_c + self.alpha * loss_b
         self.log("loss", loss)
 
         return loss
@@ -107,7 +75,7 @@ class SimSiam(LightningModule):
             {
                 "params": [
                     p
-                    for n, p in self.siamarm.named_parameters()
+                    for n, p in self.model.named_parameters()
                     if not any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": self.hparams.weight_decay,
@@ -115,7 +83,7 @@ class SimSiam(LightningModule):
             {
                 "params": [
                     p
-                    for n, p in self.siamarm.named_parameters()
+                    for n, p in self.model.named_parameters()
                     if any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": 0.0,

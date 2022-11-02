@@ -3,31 +3,10 @@ from typing import Any, Optional
 import torch
 from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.types import STEP_OUTPUT
-from pytorch_metric_learning import losses
-from torch import nn
-from transformers import AutoModel, AutoTokenizer, get_scheduler
+from transformers import AutoConfig, AutoModel, AutoTokenizer, get_scheduler
 
+from src.models.modules import MLP, NTXentLoss
 from src.utils.collate import TransformerCollator
-
-
-class Projection(nn.Module):
-    def __init__(
-        self,
-        input_dim: int,
-        hidden_dim: int,
-        output_dim: int,
-        activation=nn.ReLU(),
-    ):
-        super().__init__()
-        self.model = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.BatchNorm1d(hidden_dim),
-            activation,
-            nn.Linear(hidden_dim, output_dim, bias=False),
-        )
-
-    def forward(self, x):
-        return self.model(x)
 
 
 class SimCLR(LightningModule):
@@ -35,14 +14,15 @@ class SimCLR(LightningModule):
         self,
         model_name_or_path: str,
         max_length: Optional[int] = None,
-        temperature: float = 0.05,
+        hidden_dropout_prob: float = 0.3,
+        hidden_dim: Optional[int] = 2048,
+        output_dim: Optional[int] = 4096,
+        temperature: float = 0.01,
         learning_rate: float = 2e-5,
         adam_epsilon: float = 1e-8,
         warmup_steps: int = 0,
         weight_decay: float = 0.0,
         scheduler_type: str = "linear",
-        hidden_dim: Optional[int] = None,
-        output_dim: Optional[int] = 128,
     ) -> None:
         super().__init__()
         self.save_hyperparameters()
@@ -52,16 +32,15 @@ class SimCLR(LightningModule):
             tokenizer=tokenizer,
             max_length=max_length,
         )
-        self.model = AutoModel.from_pretrained(model_name_or_path)
-
-        config = self.model.config
-        self.projection = Projection(
+        config = AutoConfig.from_pretrained(model_name_or_path)
+        config.hidden_dropout_prob = hidden_dropout_prob
+        self.model = AutoModel.from_pretrained(model_name_or_path, config=config)
+        self.projector = MLP(
             input_dim=config.hidden_size,
-            hidden_dim=hidden_dim or config.hidden_size,
             output_dim=output_dim or config.hidden_size,
+            hidden_dim=hidden_dim or config.hidden_size,
         )
-
-        self.loss_func = losses.NTXentLoss(temperature=temperature)
+        self.loss_func = NTXentLoss(temperature=temperature)
 
     def forward(self, x) -> Any:
         return self.model(**x).pooler_output
@@ -71,20 +50,15 @@ class SimCLR(LightningModule):
             x1, x2 = batch
         else:
             x1 = x2 = batch
-        h1, h2 = self.forward(x1), self.forward(x2)
 
-        z1 = self.projection(h1)
-        z2 = self.projection(h2)
+        h1, h2 = self.forward(x1), self.forward(x2)
+        z1, z2 = self.projector(h1), self.projector(h2)
 
         if self.trainer.strategy.strategy_name.startswith("ddp"):
             z1 = torch.flatten(self.all_gather(z1, sync_grads=True), end_dim=1)
             z2 = torch.flatten(self.all_gather(z2, sync_grads=True), end_dim=1)
 
-        labels = torch.arange(len(z1), device=self.device)
-        embeddings = torch.cat([z1, z2])
-        labels = torch.cat([labels, labels])
-
-        loss = self.loss_func(embeddings, labels)
+        loss = self.loss_func(z1, z2)
         self.log("loss", loss)
 
         return loss

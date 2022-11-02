@@ -15,9 +15,9 @@ class SimCSE(LightningModule):
         self,
         model_name_or_path: str,
         max_length: Optional[int] = None,
-        temperature: float = 0.01,
         hidden_dropout_prob: float = 0.3,
         pooler_type: Pooler.valid_types = "cls_with_mlp",
+        temperature: float = 0.01,
         learning_rate: float = 2e-5,
         adam_epsilon: float = 1e-8,
         warmup_steps: int = 0,
@@ -27,7 +27,6 @@ class SimCSE(LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
-        self.temperature = temperature
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
         self.collate_fn = TransformerCollator(
             tokenizer=tokenizer,
@@ -38,6 +37,7 @@ class SimCSE(LightningModule):
         self.model = AutoModel.from_pretrained(model_name_or_path, config=config)
         self.pooler = Pooler(pooler_type=pooler_type)
         self.with_mlp = "mlp" in pooler_type
+        self.temperature = temperature
 
     def forward(self, inputs) -> Any:
         outputs = self.model(**inputs)
