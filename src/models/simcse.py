@@ -53,27 +53,20 @@ class SimCSE(LightningModule):
             x1, x2 = batch
         else:
             x1 = x2 = batch
-
         z1, z2 = self.forward(x1), self.forward(x2)
 
         if self.trainer.strategy.strategy_name.startswith("ddp"):
-            z2_dist = torch.flatten(self.all_gather(z2, sync_grads=True), end_dim=1)
-        else:
-            z2_dist = z2
+            z1 = torch.flatten(self.all_gather(z1, sync_grads=True), end_dim=1)
+            z2 = torch.flatten(self.all_gather(z2, sync_grads=True), end_dim=1)
 
         sim = (
-            F.cosine_similarity(z1.unsqueeze(1), z2_dist.unsqueeze(0), dim=-1)
+            F.cosine_similarity(z1.unsqueeze(1), z2.unsqueeze(0), dim=-1)
             / self.temperature
         )
-        batch_size = len(z1)
-        labels = torch.arange(
-            start=self.global_rank * batch_size,
-            end=(self.global_rank + 1) * batch_size,
-            device=self.device,
-        )
+        labels = torch.arange(len(sim), device=self.device)
 
         loss = F.cross_entropy(sim, labels)
-        self.log("loss", loss, sync_dist=True)
+        self.log("loss", loss)
 
         return loss
 
