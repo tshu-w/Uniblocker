@@ -20,20 +20,16 @@ class NTXentLoss(nn.Module):
         self.temperature = temperature
 
     def forward(self, z1, z2):
+        z1, z2 = F.normalize(z1), F.normalize(z2)
         z = torch.cat([z1, z2])
-        z = F.normalize(z)
 
-        pos = ((z1 * z2).sum(dim=-1) / self.temperature).exp()
+        pos = (z1 * z2).sum(dim=-1) / self.temperature
         pos = torch.cat([pos, pos])
 
         c = z @ z.T
-        neg = (
-            (off_diagonal(c).reshape(c.size(0), -1) / self.temperature)
-            .exp()
-            .sum(dim=-1)
-        )
+        ttl = (off_diagonal(c).reshape(c.size(0), -1) / self.temperature).logsumexp(-1)
 
-        loss = -torch.log(pos / neg).mean()
+        loss = (-pos + ttl).mean()
         return loss
 
 
