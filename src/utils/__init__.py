@@ -1,6 +1,7 @@
-from typing import Iterable, Iterator, Optional, Union
+from typing import Iterable, Iterator, Optional
 
 from .evaluation import evaluate, get_candidates
+from .table_detector import check_table
 
 
 def chunks(lst: Iterable, n: int) -> Iterator[Iterable]:
