@@ -29,11 +29,8 @@ class LitCLI(LightningCLI):
                             -1
                         ].lower()
                     exp_name = f"{exp_name}/{data_name}"
-                logger.init_args.name = exp_name
-
-                # HACK: https://github.com/Lightning-AI/lightning/issues/14225
-                if hasattr(logger.init_args, "dir"):
-                    logger.init_args.dir = logger.init_args.save_dir
+                if hasattr(logger.init_args, "name"):
+                    logger.init_args.name = exp_name
 
     def before_run(self):
         self.model.validation_step = self.model.test_step = empty_fun
@@ -51,7 +48,7 @@ def lit_cli():
             }
             for cmd in ["fit", "validate", "test"]
         },
-        save_config_overwrite=True,
+        save_config_kwargs={"overwrite": True},
     )
 
 
