@@ -3,17 +3,18 @@ torch >= 1.12.0
 pytorch-lightning[extra] >= 1.8.0
 shtab >= 1.5.4
 
-transformers >= 4.20.0
 datasets >= 2.4.0
+transformers >= 4.20.0
 
+faiss-cpu
 fasttext >= 0.9.0
 scikit-learn >= 1.0.0
-faiss-cpu
 
-torchtext
-pyjnius
 py_stringmatching
+pyjnius
+pytorch-metric-learning
+torchtext
 
+jupyterlab
 ray[tune]
 wandb
-jupyterlab

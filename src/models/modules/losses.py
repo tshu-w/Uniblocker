@@ -1,6 +1,19 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from pytorch_metric_learning import losses
+
+
+class NTXentLoss(nn.Module):
+    def __init__(self, temperature: float = 0.07):
+        super().__init__()
+        self.loss_func = losses.NTXentLoss(temperature)
+
+    def forward(self, z1, z2):
+        embeddings = torch.cat([z1, z2])
+        labels = torch.arange(len(z1), device=z1.device)
+        labels = torch.cat([labels, labels])
+        return self.loss_func(embeddings, labels)
 
 
 # taken from: https://github.com/facebookresearch/barlowtwins/blob/main/main.py
@@ -9,28 +22,6 @@ def off_diagonal(x):
     n, m = x.shape
     assert n == m
     return x.flatten()[:-1].view(n - 1, n + 1)[:, 1:].flatten()
-
-
-class NTXentLoss(nn.Module):
-    def __init__(
-        self,
-        temperature: float,
-    ):
-        super().__init__()
-        self.temperature = temperature
-
-    def forward(self, z1, z2):
-        z1, z2 = F.normalize(z1), F.normalize(z2)
-        z = torch.cat([z1, z2])
-
-        pos = (z1 * z2).sum(dim=-1) / self.temperature
-        pos = torch.cat([pos, pos])
-
-        c = z @ z.T
-        ttl = (off_diagonal(c).reshape(c.size(0), -1) / self.temperature).logsumexp(-1)
-
-        loss = (-pos + ttl).mean()
-        return loss
 
 
 class BarlowTwinsLoss(nn.Module):
@@ -50,4 +41,14 @@ class BarlowTwinsLoss(nn.Module):
         on_diag = torch.diagonal(c).add_(-1).pow_(2).sum()
         off_diag = off_diagonal(c).pow_(2).sum()
         loss = on_diag + self.args.lambd * off_diag
+        return loss
+
+
+class SelfContLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, z1, z2):
+        z1, z2 = F.normalize(z1), F.normalize(z2)
+        loss = (z1 * z2).sum(dim=-1).mean()
         return loss
