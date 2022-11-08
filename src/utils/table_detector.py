@@ -24,7 +24,7 @@ def is_url(
 
 def is_datetime(s: str) -> bool:
     try:
-        dateutil_parse(s)
+        dateutil_parse(s, ignoretz=True)
         return True
     except Exception:
         return False
@@ -91,9 +91,13 @@ def is_entity_table(table: pd.DataFrame) -> bool:
     Heuristic rules to skip not latin tables and check if a table
     is an entity tables (not tabular, annotation, log and others).
     """
+    if any(table.columns.duplicated()):
+        return False
+
     column_types = [get_column_type(table[c]) for c in table.columns]
     return (
         most((lambda t: t not in ["numeric", "url", "date"] for t in column_types), 0.5)
+        and len(column_types)
         and column_types[0] != "date"
     )
 
