@@ -1,12 +1,11 @@
 from typing import Any, Optional
 
 import torch
-import torch.nn.functional as F
 from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.types import STEP_OUTPUT
 from transformers import AutoConfig, AutoModel, AutoTokenizer, get_scheduler
 
-from src.models.modules import Pooler
+from src.models.modules import NTXentLoss, Pooler
 from src.utils.collate import TransformerCollator
 
 
@@ -37,7 +36,7 @@ class SimCSE(LightningModule):
         self.model = AutoModel.from_pretrained(model_name_or_path, config=config)
         self.pooler = Pooler(pooler_type=pooler_type)
         self.with_mlp = "mlp" in pooler_type
-        self.temperature = temperature
+        self.loss_func = NTXentLoss(temperature=temperature, direction="single")
 
     def forward(self, inputs) -> Any:
         outputs = self.model(**inputs)
@@ -59,13 +58,7 @@ class SimCSE(LightningModule):
             z1 = torch.flatten(self.all_gather(z1, sync_grads=True), end_dim=1)
             z2 = torch.flatten(self.all_gather(z2, sync_grads=True), end_dim=1)
 
-        sim = (
-            F.cosine_similarity(z1.unsqueeze(1), z2.unsqueeze(0), dim=-1)
-            / self.temperature
-        )
-        labels = torch.arange(len(sim), device=self.device)
-
-        loss = F.cross_entropy(sim, labels)
+        loss = self.loss_func(z1, z2)
         self.log("loss", loss)
 
         return loss

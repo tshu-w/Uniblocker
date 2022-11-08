@@ -1,3 +1,5 @@
+from typing import Literal
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,15 +7,25 @@ from pytorch_metric_learning import losses
 
 
 class NTXentLoss(nn.Module):
-    def __init__(self, temperature: float = 0.07):
+    def __init__(
+        self,
+        temperature: float = 0.07,
+        direction: Literal["single", "both"] = "both",
+    ):
         super().__init__()
         self.loss_func = losses.NTXentLoss(temperature)
+        self.direction = direction
 
     def forward(self, z1, z2):
-        embeddings = torch.cat([z1, z2])
         labels = torch.arange(len(z1), device=z1.device)
-        labels = torch.cat([labels, labels])
-        return self.loss_func(embeddings, labels)
+        if self.direction == "single":
+            return self.loss_func(
+                embeddings=z1, labels=labels, ref_emb=z2, ref_labels=labels.clone()
+            )
+        else:
+            embeddings = torch.cat([z1, z2])
+            labels = torch.cat([labels, labels])
+            return self.loss_func(embeddings, labels)
 
 
 # taken from: https://github.com/facebookresearch/barlowtwins/blob/main/main.py
