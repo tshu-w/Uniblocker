@@ -64,3 +64,33 @@ class SelfContLoss(nn.Module):
         z1, z2 = F.normalize(z1), F.normalize(z2)
         loss = (z1 * z2).sum(dim=-1).mean()
         return loss
+
+
+class CircleLoss(nn.Module):
+    """
+    According to the paper, the suggested default values of m and gamma are:
+    Face Recognition: m = 0.25, gamma = 256
+    Person Reidentification: m = 0.25, gamma = 128
+    Fine-grained Image Retrieval: m = 0.4, gamma = 80
+    """
+
+    def __init__(
+        self,
+        m: float = 0.4,
+        gamma: float = 80,
+    ):
+        super().__init__()
+        self.loss_func = losses.CircleLoss(m=m, gamma=gamma)
+
+    def forward(self, z1, z2, matches):
+        a1_idx, p_idx = torch.where(matches)
+        a2_idx, n_idx = torch.where(matches.logical_not())
+        indices_tuple = a1_idx, p_idx, a2_idx, n_idx
+        labels = torch.arange(len(z1), device=z1.device)
+        return self.loss_func(
+            embeddings=z1,
+            labels=labels,
+            indices_tuple=indices_tuple,
+            ref_emb=z2,
+            ref_labels=labels,
+        )

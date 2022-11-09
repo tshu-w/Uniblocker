@@ -4,6 +4,7 @@ from typing import Literal, Optional
 import numpy as np
 import py_stringmatching as sm
 import pytorch_lightning as pl
+import torch
 import torch.nn.functional as F
 from datasets import Dataset
 from pytorch_lightning import Callback
@@ -118,6 +119,7 @@ class Evaluator(Callback):
         datamodule: pl.LightningDataModule,
         index_col: str,
     ) -> list[Dataset]:
+        @torch.no_grad()
         def encode(batch: dict[list]):
             collate_fn = getattr(module, "collate_fn", default_collate)
 

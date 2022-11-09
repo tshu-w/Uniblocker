@@ -5,19 +5,18 @@ from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.types import STEP_OUTPUT
 from transformers import AutoConfig, AutoModel, AutoTokenizer, get_scheduler
 
-from src.models.modules import MLP, NTXentLoss
-from src.utils.collators import TransformerCollator
+from src.models.modules import CircleLoss
+from src.utils.collators import TransformerCollatorWithDistances
 
 
-class SimCLR(LightningModule):
+class RecordFormer(LightningModule):
     def __init__(
         self,
         model_name_or_path: str,
         max_length: Optional[int] = None,
-        hidden_dropout_prob: float = 0.3,
-        hidden_dim: Optional[int] = 2048,
-        output_dim: Optional[int] = 4096,
-        temperature: float = 0.01,
+        hidden_dropout_prob: float = 0.15,
+        m: float = 0.4,
+        gamma: int = 80,
         learning_rate: float = 2e-5,
         adam_epsilon: float = 1e-8,
         warmup_steps: int = 0,
@@ -28,37 +27,24 @@ class SimCLR(LightningModule):
         self.save_hyperparameters()
 
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-        self.collate_fn = TransformerCollator(
+        self.collate_fn = TransformerCollatorWithDistances(
             tokenizer=tokenizer,
             max_length=max_length,
         )
         config = AutoConfig.from_pretrained(model_name_or_path)
         config.hidden_dropout_prob = hidden_dropout_prob
         self.model = AutoModel.from_pretrained(model_name_or_path, config=config)
-        self.projector = MLP(
-            input_dim=config.hidden_size,
-            output_dim=output_dim or config.hidden_size,
-            hidden_dim=hidden_dim or config.hidden_size,
-        )
-        self.loss_func = NTXentLoss(temperature=temperature)
+        self.loss_func = CircleLoss(m=m, gamma=gamma)
 
-    def forward(self, x) -> Any:
-        return self.model(**x).pooler_output
+    def forward(self, inputs) -> Any:
+        return self.model(**inputs).pooler_output
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
-        if isinstance(batch, tuple):
-            x1, x2 = batch
-        else:
-            x1 = x2 = batch
+        distances = batch.pop("distances", None)
+        x1 = x2 = batch
+        z1, z2 = self.forward(x1), self.forward(x2)
 
-        h1, h2 = self.forward(x1), self.forward(x2)
-        z1, z2 = self.projector(h1), self.projector(h2)
-
-        if self.trainer.strategy.strategy_name.startswith("ddp"):
-            z1 = torch.flatten(self.all_gather(z1, sync_grads=True), end_dim=1)
-            z2 = torch.flatten(self.all_gather(z2, sync_grads=True), end_dim=1)
-
-        loss = self.loss_func(z1, z2)
+        loss = self.loss_func(z1, z2, distances > 0.8)
         self.log("loss", loss)
 
         return loss

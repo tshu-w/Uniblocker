@@ -6,7 +6,7 @@ from pytorch_lightning.utilities.types import STEP_OUTPUT
 from transformers import AutoConfig, AutoModel, AutoTokenizer, get_scheduler
 
 from src.models.modules import MLP, BarlowTwinsLoss, NTXentLoss
-from src.utils.collate import TransformerCollator
+from src.utils.collators import TransformerCollator
 
 
 class Sudowoodo(LightningModule):
