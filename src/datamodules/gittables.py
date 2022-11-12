@@ -27,6 +27,7 @@ class GitTables(LightningDataModule):
             self.tables = GitTablesDataset(self.data_dir, self.data_files)
 
         self.collate_fn = getattr(self.trainer.model, "collate_fn", None)
+        self.hparams.num_workers = self.trainer.num_devices * 4
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return DataLoader(
