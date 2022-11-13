@@ -4,8 +4,7 @@ ARG CONDA_ENV=env
 
 SHELL ["/bin/bash", "-c"]
 
-RUN rm /etc/apt/sources.list.d/cuda.list /etc/apt/sources.list.d/nvidia-ml.list && \
-    apt update --fix-missing -qq && \
+RUN apt update --fix-missing -qq && \
     apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
