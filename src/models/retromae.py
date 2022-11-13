@@ -1,4 +1,3 @@
-from itertools import chain
 from typing import Any, Optional
 
 import torch
@@ -142,9 +141,7 @@ class RetroMAE(LightningModule):
             {
                 "params": [
                     p
-                    for n, p in chain(
-                        self.encoder.named_parameters(), self.decoder.named_parameters()
-                    )
+                    for n, p in self.named_parameters()
                     if not any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": self.hparams.weight_decay,
@@ -152,9 +149,7 @@ class RetroMAE(LightningModule):
             {
                 "params": [
                     p
-                    for n, p in chain(
-                        self.encoder.named_parameters(), self.decoder.named_parameters()
-                    )
+                    for n, p in self.named_parameters()
                     if any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": 0.0,
