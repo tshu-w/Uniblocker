@@ -124,3 +124,49 @@ class RetroMAECollator(TransformerCollator, DataCollatorForLanguageModeling):
             "decoder_attention_mask": decoder_attention_mask,
             "decoder_labels": decoder_labels,
         }
+
+
+@dataclass
+class LexMAECollator(TransformerCollator, DataCollatorForLanguageModeling):
+    encoder_mlm_probability: float = 0.15
+    decoder_mlm_probability: float = 0.15
+
+    def __post_init__(self):
+        if self.tokenizer.mask_token is None:
+            raise ValueError(
+                "This tokenizer does not have a mask token which is necessary for masked language modeling. "
+            )
+
+    def __call__(
+        self,
+        batch: list[list[tuple]],
+    ) -> dict[str, any]:
+        if not torch.is_grad_enabled():
+            return super().__call__(batch)
+
+        texts = [" ".join(t[1] for t in r) for r in batch]
+        feature = self.tokenizer(
+            texts,
+            padding="max_length",
+            truncation=True,
+            max_length=self.max_length,
+            return_tensors="pt",
+        )
+        encoder_input_ids = feature["input_ids"].clone()
+        self.mlm_probability = self.encoder_mlm_probability
+        encoder_input_ids, encoder_labels = self.torch_mask_tokens(encoder_input_ids)
+        encoder_attention_mask = feature["attention_mask"].clone()
+
+        decoder_input_ids = feature["input_ids"].clone()
+        self.mlm_probability = self.decoder_mlm_probability
+        decoder_input_ids, decoder_labels = self.torch_mask_tokens(decoder_input_ids)
+        decoder_attention_mask = feature["attention_mask"].clone()
+
+        return {
+            "encoder_input_ids": encoder_input_ids,
+            "encoder_attention_mask": encoder_attention_mask,
+            "encoder_labels": encoder_labels,
+            "decoder_input_ids": decoder_input_ids,
+            "decoder_attention_mask": decoder_attention_mask,
+            "decoder_labels": decoder_labels,
+        }
