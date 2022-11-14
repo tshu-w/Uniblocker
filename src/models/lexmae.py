@@ -71,6 +71,8 @@ class LexMAE(LightningModule):
 
     def forward(self, x) -> Any:
         logits = self.encoder(**x).logits
+        attention_mask_extended = x.attention_mask.unsqueeze(-1).expand(logits.size())
+        logits[attention_mask_extended == 0] = float("-inf")
         scores = logits.max(dim=1)[0].softmax(dim=-1)
         encoder_base_model = getattr(self.encoder, self.encoder.base_model_prefix)
         bottleneck = scores @ encoder_base_model.get_input_embeddings().weight.detach()
@@ -92,6 +94,10 @@ class LexMAE(LightningModule):
         )
 
         logits = encoder_outputs.logits
+        attention_mask_extended = encoder_attention_mask.unsqueeze(-1).expand(
+            logits.size()
+        )
+        logits[attention_mask_extended == 0] = float("-inf")
         scores = logits.max(dim=1)[0].softmax(dim=-1)
         encoder_base_model = getattr(self.encoder, self.encoder.base_model_prefix)
         bottleneck = scores @ encoder_base_model.get_input_embeddings().weight.detach()
