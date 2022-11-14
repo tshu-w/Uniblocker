@@ -14,3 +14,29 @@ def dict2tuples(record: dict, index_col: Optional[str] = None) -> list[tuple]:
     record = list(filter(lambda x: x[0] != index_col, record.items()))
     record = list((str(t[0]).casefold(), str(t[1]).casefold()) for t in record if t[1])
     return record
+
+
+# HACK: https://github.com/SeldonIO/seldon-core/issues/3720
+import os
+import tempfile
+from multiprocessing import connection, util
+from multiprocessing.connection import _mmap_counter
+
+
+def arbitrary_address(family):
+    """
+    Return an arbitrary free address for the given family
+    """
+    if family == "AF_INET":
+        return ("localhost", 0)
+    elif family == "AF_UNIX":
+        return tempfile.mktemp(prefix="listener-", dir=util.get_temp_dir())
+    elif family == "AF_PIPE":
+        return tempfile.mktemp(
+            prefix=r"\\.\pipe\pyc-%d-%d-" % (os.getpid(), next(_mmap_counter)), dir=""
+        )
+    else:
+        raise ValueError("unrecognized family")
+
+
+connection.arbitrary_address = arbitrary_address
