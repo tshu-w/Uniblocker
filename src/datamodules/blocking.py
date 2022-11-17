@@ -35,7 +35,7 @@ class TableDataset(Dataset):
         return len(self.df)
 
     def __getitem__(self, index) -> list[tuple]:
-        return dict2tuples(self.df.iloc[index].to_dict(), self.index_col)
+        return dict2tuples(self.df.iloc[index].to_dict(), ignored_cols=[self.index_col])
 
 
 class Blocking(LightningDataModule):

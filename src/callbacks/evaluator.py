@@ -124,7 +124,7 @@ class Evaluator(Callback):
             collate_fn = getattr(module, "collate_fn", default_collate)
 
             batch: list[dict] = [dict(zip(batch, t)) for t in zip(*batch.values())]
-            batch = [dict2tuples(r, index_col) for r in batch]
+            batch = [dict2tuples(r, ignored_cols=[index_col]) for r in batch]
             texts = [" ".join([t[1] for t in l]) for l in batch]
             batch = move_data_to_device(collate_fn(batch), module.device)
 
