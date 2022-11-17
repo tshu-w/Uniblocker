@@ -18,6 +18,7 @@ class RecordFormer(LightningModule):
         m: float = 0.4,
         gamma: int = 80,
         learning_rate: float = 2e-5,
+        distance: float = 0.8,
         adam_epsilon: float = 1e-8,
         warmup_steps: int = 0,
         weight_decay: float = 0.0,
@@ -35,6 +36,7 @@ class RecordFormer(LightningModule):
         config.hidden_dropout_prob = hidden_dropout_prob
         self.model = AutoModel.from_pretrained(model_name_or_path, config=config)
         self.loss_func = CircleLoss(m=m, gamma=gamma)
+        self.distance = distance
 
     def forward(self, inputs) -> Any:
         return self.model(**inputs).pooler_output
@@ -44,7 +46,7 @@ class RecordFormer(LightningModule):
         x1 = x2 = batch
         z1, z2 = self.forward(x1), self.forward(x2)
 
-        loss = self.loss_func(z1, z2, distances > 0.8)
+        loss = self.loss_func(z1, z2, distances > self.distance)
         self.log("loss", loss)
 
         return loss
