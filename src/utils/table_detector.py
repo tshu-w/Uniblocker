@@ -110,7 +110,7 @@ def check_table(table: pd.DataFrame) -> bool:
 
 
 if __name__ == "__main__":
-    data_files = data_dir.rglob("*.parquet")
+    data_files = "./data/gittables".rglob("*.parquet")
 
     for f in data_files:
         try:
