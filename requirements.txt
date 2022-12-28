@@ -9,6 +9,8 @@ faiss-cpu
 
 pyjnius
 pytorch-metric-learning
+# https://github.com/anhaidgroup/py_stringmatching/issues/80
+numpy < 1.24.0
 py_stringmatching
 scikit-learn
 
