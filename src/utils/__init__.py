@@ -1,4 +1,3 @@
-# HACK: https://github.com/SeldonIO/seldon-core/issues/3720
 import os
 import tempfile
 from multiprocessing import connection, util
@@ -25,4 +24,5 @@ def arbitrary_address(family):
         raise ValueError("unrecognized family")
 
 
+# HACK: https://github.com/SeldonIO/seldon-core/issues/3720
 connection.arbitrary_address = arbitrary_address
