@@ -6,6 +6,8 @@ import py_stringmatching as sm
 import torch
 from transformers import DataCollatorForLanguageModeling, PreTrainedTokenizer
 
+from .helpers import tuples2str
+
 
 @dataclass
 class TransformerCollator:
@@ -16,7 +18,7 @@ class TransformerCollator:
         self,
         batch: list[list[tuple]],
     ) -> dict[str, any]:
-        texts = [" ".join(t[1] for t in r) for r in batch]
+        texts = list(map(tuples2str, batch))
         features = self.tokenizer(
             texts,
             padding="max_length",
@@ -59,7 +61,7 @@ class TransformerCollatorWithDistances(TransformerCollator):
             return super().__call__(batch)
 
         features = super().__call__(batch)
-        texts = [" ".join(t[1] for t in r) for r in batch]
+        texts = list(map(tuples2str, batch))
         batch_size = len(texts)
         distances = list(starmap(self.sparse_similarity, product(texts, texts)))
         distances = [
@@ -88,7 +90,7 @@ class RetroMAECollator(TransformerCollator, DataCollatorForLanguageModeling):
         if not torch.is_grad_enabled():
             return super().__call__(batch)
 
-        texts = [" ".join(t[1] for t in r) for r in batch]
+        texts = list(map(tuples2str, batch))
         feature = self.tokenizer(
             texts,
             padding="max_length",
@@ -144,7 +146,7 @@ class LexMAECollator(TransformerCollator, DataCollatorForLanguageModeling):
         if not torch.is_grad_enabled():
             return super().__call__(batch)
 
-        texts = [" ".join(t[1] for t in r) for r in batch]
+        texts = list(map(tuples2str, batch))
         feature = self.tokenizer(
             texts,
             padding="max_length",
