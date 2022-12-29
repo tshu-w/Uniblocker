@@ -47,7 +47,7 @@ class Sudowoodo(LightningModule):
         self.loss_b = BarlowTwinsLoss(dim=self.projector.output_dim, lambd=lambd)
 
     def forward(self, x) -> Any:
-        return self.model(**x).pooler_output
+        return self.model(**x).last_hidden_state[:, 0]
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
         if isinstance(batch, tuple):
