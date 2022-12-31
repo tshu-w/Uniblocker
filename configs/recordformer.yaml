@@ -1,6 +1,6 @@
 seed_everything: 123
 trainer:
-  max_epochs: 10
+  max_epochs: 5
   callbacks+:
     - class_path: Metric
     - class_path: Evaluator

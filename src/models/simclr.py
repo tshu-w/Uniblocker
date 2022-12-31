@@ -14,7 +14,7 @@ class SimCLR(LightningModule):
         self,
         model_name_or_path: str,
         max_length: Optional[int] = None,
-        hidden_dropout_prob: float = 0.3,
+        hidden_dropout_prob: float = 0.15,
         hidden_dim: Optional[int] = 2048,
         output_dim: Optional[int] = 4096,
         temperature: float = 0.01,

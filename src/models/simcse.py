@@ -14,7 +14,7 @@ class SimCSE(LightningModule):
         self,
         model_name_or_path: str,
         max_length: Optional[int] = None,
-        hidden_dropout_prob: float = 0.1,
+        hidden_dropout_prob: float = 0.15,
         pooler_type: Pooler.valid_types = "cls_with_mlp",
         temperature: float = 0.01,
         learning_rate: float = 2e-5,
