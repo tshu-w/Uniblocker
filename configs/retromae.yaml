@@ -9,6 +9,8 @@ model:
   init_args:
     model_name_or_path: models/roberta-base
     max_length: 256
+    encoder_mlm_probability: 0.15
+    decoder_mlm_probability: 0.3
     learning_rate: 2.0e-05
     adam_epsilon: 1.0e-08
     warmup_steps: 0
