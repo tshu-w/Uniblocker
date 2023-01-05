@@ -28,14 +28,14 @@ def fit_vectorizer(
     corpus: list[str],
     *,
     preprocessor: Optional[Callable] = None,
-    analyzer: str = "char_wb",
-    ngram_range: tuple[int, int] = (5, 5),
+    tokenizer: Optional[Callable] = None,
     binary: bool = False,
 ) -> CountVectorizer:
     vectorizer = CountVectorizer(
         preprocessor=preprocessor,
-        analyzer=analyzer,
-        ngram_range=ngram_range,
+        tokenizer=tokenizer,
+        analyzer="word" if tokenizer else "char_wb",
+        ngram_range=(1, 1) if tokenizer else (5, 5),
         binary=binary,
     )
     vectorizer.fit(corpus)
@@ -82,6 +82,7 @@ def knn_join(
 def sparse_join(
     data_dir: str = "./data/blocking/cora",
     index_col: str = "id",
+    tokenizer: Optional[Callable] = None,
     n_neighbors: int = 100,
     direction: Literal["forward", "reversed", "both"] = "forward",
 ):
@@ -93,7 +94,7 @@ def sparse_join(
     matches_path = Path(data_dir) / "matches.csv"
     matches = set(pd.read_csv(matches_path).itertuples(index=False, name=None))
 
-    vectorizers = [fit_vectorizer(corpus) for corpus in corpuses]
+    vectorizers = [fit_vectorizer(corpus, tokenizer=tokenizer) for corpus in corpuses]
     indexes = [
         build_index(corpus, vectorizer, n_neighbors=n_neighbors)
         for corpus, vectorizer in zip(corpuses, vectorizers)

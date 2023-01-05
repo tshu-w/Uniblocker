@@ -2,7 +2,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Literal
+from typing import Callable, Literal, Optional
 
 import wandb
 from jsonargparse import CLI
@@ -38,6 +38,7 @@ def run_sparse_join(config):
 
 def sweep_sparse_join(
     data_dirs: list[str] = [],
+    tokenizers: list[Optional[Callable]] = [None],
     n_neighbors: list[int] = [100],
     direction: list[Literal["forward", "reversed", "both"]] = ["forward"],
 ):
@@ -49,6 +50,7 @@ def sweep_sparse_join(
 
     param_space = {
         "data_dir": tune.grid_search(data_dirs),
+        "tokenizer": tune.grid_search(tokenizers),
         "n_neighbors": tune.grid_search(n_neighbors),
         "direction": tune.grid_search(direction),
     }
