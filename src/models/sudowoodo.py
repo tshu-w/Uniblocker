@@ -6,7 +6,8 @@ from pytorch_lightning.utilities.types import STEP_OUTPUT
 from transformers import AutoConfig, AutoModel, AutoTokenizer, get_scheduler
 
 from src.models.modules import MLP, BarlowTwinsLoss, NTXentLoss
-from src.utils.collators import TransformerCollator
+from src.utils.augment import Augmenter
+from src.utils.collators import TransformerCollatorWithAugmenter
 
 
 class Sudowoodo(LightningModule):
@@ -14,7 +15,8 @@ class Sudowoodo(LightningModule):
         self,
         model_name_or_path: str,
         max_length: Optional[int] = None,
-        hidden_dropout_prob: float = 0.15,
+        augment_prob: float = 1.0,
+        hidden_dropout_prob: float = 0.10,
         hidden_dim: Optional[int] = 2048,
         output_dim: Optional[int] = 4096,
         temperature: float = 0.07,
@@ -30,9 +32,11 @@ class Sudowoodo(LightningModule):
         self.save_hyperparameters()
 
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-        self.collate_fn = TransformerCollator(
+        augmenter = Augmenter(augment_prob) if augment_prob != 0 else None
+        self.collate_fn = TransformerCollatorWithAugmenter(
             tokenizer=tokenizer,
             max_length=max_length,
+            augmenter=augmenter,
         )
         config = AutoConfig.from_pretrained(model_name_or_path)
         config.hidden_dropout_prob = hidden_dropout_prob
@@ -50,7 +54,7 @@ class Sudowoodo(LightningModule):
         return self.model(**x).last_hidden_state[:, 0]
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
-        if isinstance(batch, tuple):
+        if isinstance(batch, list):
             x1, x2 = batch
         else:
             x1 = x2 = batch

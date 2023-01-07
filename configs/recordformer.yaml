@@ -9,6 +9,7 @@ model:
   init_args:
     model_name_or_path: models/roberta-base
     max_length: 256
+    augment_prob: 0.1
     hidden_dropout_prob: 0.15
     m: 0.4
     gamma: 80

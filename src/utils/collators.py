@@ -6,6 +6,7 @@ import py_stringmatching as sm
 import torch
 from transformers import DataCollatorForLanguageModeling, PreTrainedTokenizer
 
+from .augment import Augmenter
 from .helpers import tuples2str
 
 
@@ -30,7 +31,32 @@ class TransformerCollator:
 
 
 @dataclass
-class TransformerCollatorWithDistances(TransformerCollator):
+class TransformerCollatorWithAugmenter(TransformerCollator):
+    augmenter: Optional[Augmenter] = None
+
+    def __call__(
+        self,
+        batch: list[list[tuple]],
+    ) -> dict[str, any]:
+        features = super().__call__(batch)
+        if self.augmenter is None or not torch.is_grad_enabled():
+            return features
+
+        augmented_batch = list(map(self.augmenter, batch))
+        augmented_texts = list(map(tuples2str, augmented_batch))
+
+        augmented_features = self.tokenizer(
+            augmented_texts,
+            padding="max_length",
+            truncation=True,
+            max_length=self.max_length,
+            return_tensors="pt",
+        )
+        return features, augmented_features
+
+
+@dataclass
+class TransformerCollatorWithDistances(TransformerCollatorWithAugmenter):
     def sparse_similarity(
         self,
         s1: str,
@@ -41,7 +67,6 @@ class TransformerCollatorWithDistances(TransformerCollator):
             sm.similarity_measure.jaccard.Jaccard(),
             sm.similarity_measure.overlap_coefficient.OverlapCoefficient(),
             sm.similarity_measure.tversky_index.TverskyIndex(),
-            # sm.similarity_measure.monge_elkan.MongeElkan(),
         ],
     ) -> float:
         t1 = set(self.tokenizer.tokenize(s1))
@@ -64,12 +89,13 @@ class TransformerCollatorWithDistances(TransformerCollator):
         texts = list(map(tuples2str, batch))
         batch_size = len(texts)
         distances = list(starmap(self.sparse_similarity, product(texts, texts)))
-        distances = [
-            distances[i * batch_size : i * batch_size + batch_size]
-            for i in range(batch_size)
-        ]
-        features["distances"] = torch.tensor(distances)
-        return features
+        distances = torch.Tensor(
+            [
+                distances[i * batch_size : i * batch_size + batch_size]
+                for i in range(batch_size)
+            ]
+        )
+        return features, distances
 
 
 @dataclass

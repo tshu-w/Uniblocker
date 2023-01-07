@@ -9,7 +9,8 @@ model:
   init_args:
     model_name_or_path: models/distilbert-base-uncased
     max_length: 256
-    hidden_dropout_prob: 0.15
+    augment_prob: 1.0
+    hidden_dropout_prob: 0.10
     hidden_dim: 2048
     output_dim: 4096
     temperature: 0.07

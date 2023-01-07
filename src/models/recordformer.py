@@ -6,6 +6,7 @@ from pytorch_lightning.utilities.types import STEP_OUTPUT
 from transformers import AutoConfig, AutoModel, AutoTokenizer, get_scheduler
 
 from src.models.modules import CircleLoss
+from src.utils.augment import Augmenter
 from src.utils.collators import TransformerCollatorWithDistances
 
 
@@ -14,6 +15,7 @@ class RecordFormer(LightningModule):
         self,
         model_name_or_path: str,
         max_length: Optional[int] = None,
+        augment_prob: float = 0.1,
         hidden_dropout_prob: float = 0.15,
         m: float = 0.4,
         gamma: int = 80,
@@ -28,9 +30,11 @@ class RecordFormer(LightningModule):
         self.save_hyperparameters()
 
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+        augmenter = Augmenter(augment_prob) if augment_prob != 0 else None
         self.collate_fn = TransformerCollatorWithDistances(
             tokenizer=tokenizer,
             max_length=max_length,
+            augmenter=augmenter,
         )
         config = AutoConfig.from_pretrained(model_name_or_path)
         config.hidden_dropout_prob = hidden_dropout_prob
@@ -42,8 +46,12 @@ class RecordFormer(LightningModule):
         return self.model(**inputs).pooler_output
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
-        distances = batch.pop("distances", None)
-        x1 = x2 = batch
+        batch, distances = batch
+        if isinstance(batch, list):
+            x1, x2 = batch
+        else:
+            x1 = x2 = batch
+
         z1, z2 = self.forward(x1), self.forward(x2)
 
         loss = self.loss_func(z1, z2, distances > self.distance)
