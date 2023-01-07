@@ -1,7 +1,6 @@
 import random
 from collections.abc import Callable
 
-import nlpaug
 import nlpaug.augmenter.char as nac
 import nlpaug.augmenter.word as naw
 import nltk
@@ -19,17 +18,17 @@ class Augmenter(Callable):
         nac.RandomCharAug(action="swap"),
         nac.RandomCharAug(action="delete"),
         naw.SpellingAug(),
-        naw.WordEmbsAug(model_type="fasttext", model=nlpaug.model.word_embs.Fasttext()),
-        naw.ContextualWordEmbsAug(
-            model_type="roberta",
-            model_path="./models/roberta-base",
-            action="insert",
-        ),
-        naw.ContextualWordEmbsAug(
-            model_type="roberta",
-            model_path="./models/roberta-base",
-            action="substitute",
-        ),
+        # naw.WordEmbsAug(model_type="fasttext", model=nlpaug.model.word_embs.Fasttext()),
+        # naw.ContextualWordEmbsAug(
+        #     model_type="roberta",
+        #     model_path="./models/roberta-base",
+        #     action="insert",
+        # ),
+        # naw.ContextualWordEmbsAug(
+        #     model_type="roberta",
+        #     model_path="./models/roberta-base",
+        #     action="substitute",
+        # ),
         naw.SynonymAug(aug_src="wordnet"),
         naw.RandomWordAug(action="substitute"),
         naw.RandomWordAug(action="swap"),

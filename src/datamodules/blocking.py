@@ -110,7 +110,7 @@ class Blockings(LightningDataModule):
                     self.tables.extend([TableDataset(t) for t in table_paths])
 
         self.collate_fn = getattr(self.trainer.model, "collate_fn", None)
-        self.hparams.num_workers = self.trainer.num_devices * 4
+        self.hparams.num_workers = self.trainer.num_devices * 8
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         dataloaders = (
