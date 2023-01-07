@@ -47,10 +47,10 @@ class Augmenter(Callable):
     def __call__(self, record: list[tuple]) -> list[tuple]:
         augmented_record = record.copy()
         if bernoulli.rvs(self.probability):
-            action = random.choice(self.actions)
-            idx = random.choice(range(len(augmented_record)))
-            tp = augmented_record[idx]
             try:
+                action = random.choice(self.actions)
+                idx = random.choice(range(len(augmented_record)))
+                tp = augmented_record[idx]
                 augmented_value = action.augment(tp[1])
                 if isinstance(augmented_value, list):
                     augmented_value = augmented_value[0]
