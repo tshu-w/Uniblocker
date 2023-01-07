@@ -10,7 +10,7 @@ from .datasets.gittables_dataset import GitTablesDataset
 class GitTables(LightningDataModule):
     def __init__(
         self,
-        data_dir: str = "./data/gittables/raw_4943312/",
+        data_dir: str = "./data/gittables/raw_4943312",
         data_files: Optional[list[str]] = None,
         batch_size: int = 32,
         num_workers: int = 0,

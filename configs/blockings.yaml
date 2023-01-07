@@ -15,10 +15,9 @@ trainer:
         mode: max
         save_top_k: 5
 data:
-  class_path: src.datamodules.GitTables
+  class_path: src.datamodules.Blockings
   init_args:
-    data_dir: ./data/gittables/raw_4943312
-    data_files: null
+    data_dir: ./data/blocking
     batch_size: 128
     num_workers: 0
     pin_memory: true
