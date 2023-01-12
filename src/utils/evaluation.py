@@ -8,12 +8,11 @@ def get_candidates(
     dfs: list[pd.DataFrame],
     indices_list: list[list[list[int]]],
     *,
-    n_neighbors: int = 100,
     direction: Literal["forward", "reversed", "both"] = "forward",
 ) -> list[set[tuple[Any, Any]]]:
     candidates = []
     flags = set()  # Comparison Propagation
-    for i in range(n_neighbors):
+    for i in range(len(indices_list[0][0])):
         cands = set()
         if direction != "reversed":
             for j in range(len(dfs[0])):

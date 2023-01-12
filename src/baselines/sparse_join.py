@@ -50,6 +50,7 @@ def build_index(
     n_neighbors: int,
     metric: Union[str, Callable] = "cosine",
 ) -> NearestNeighbors:
+    n_neighbors = min(n_neighbors, len(corpus))
     index = NearestNeighbors(
         n_neighbors=n_neighbors,
         metric=metric,
@@ -111,7 +112,6 @@ def sparse_join(
     candidates = get_candidates(
         dfs,
         indices_list,
-        n_neighbors=n_neighbors,
         direction=direction,
     )
     metrics = evaluate(candidates, matches)

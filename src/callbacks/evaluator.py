@@ -91,9 +91,7 @@ class Evaluator(Callback):
 
         dfs = [d.to_pandas().set_index(index_col) for d in datasets]
 
-        candidates = get_candidates(
-            dfs, indices_list, n_neighbors=self.n_neighbors, direction=self.direction
-        )
+        candidates = get_candidates(dfs, indices_list, direction=self.direction)
         matches = datamodule.matches
         results = evaluate(candidates, matches)
 
