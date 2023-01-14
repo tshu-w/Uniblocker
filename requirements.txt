@@ -25,5 +25,6 @@ torchtext
 # dev tools
 shtab >= 1.5.4
 jupyterlab
+seaborn
 ray[tune]
 wandb
