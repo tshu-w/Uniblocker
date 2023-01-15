@@ -48,9 +48,11 @@ def sweep_sparse_join(
         if d.name not in ["songs", "citeseer-dblp"]
     ]
 
+    # import re
     # from transformers import AutoTokenizer
     # from py_stringmatching.tokenizer.whitespace_tokenizer import WhitespaceTokenizer
     # tokenizers = [
+    #     re.compile(r"(?u)\b\w\w+\b").findall,
     #     WhitespaceTokenizer().tokenize,
     #     AutoTokenizer.from_pretrained("./models/roberta-base").tokenize,
     # ]
