@@ -2,6 +2,10 @@ from functools import partial
 from typing import Literal, Optional
 
 import numpy as np
+
+# https://github.com/anhaidgroup/py_stringmatching/issues/80
+np.int = int
+np.float = float
 import py_stringmatching as sm
 import pytorch_lightning as pl
 import torch

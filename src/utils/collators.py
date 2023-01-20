@@ -2,6 +2,11 @@ from dataclasses import dataclass
 from itertools import product, starmap
 from typing import Optional
 
+import numpy as np
+
+# https://github.com/anhaidgroup/py_stringmatching/issues/80
+np.int = int
+np.float = float
 import py_stringmatching as sm
 import torch
 from transformers import DataCollatorForLanguageModeling, PreTrainedTokenizer
