@@ -49,7 +49,6 @@ class Evaluator(Callback):
 
     def evaluate(self, trainer: pl.Trainer, module: pl.LightningModule) -> None:
         datamodule = trainer.datamodule or module
-        index_col = datamodule.hparams.index_col
         knn_join = partial(
             Evaluator.knn_join,
             n_neighbors=self.n_neighbors,

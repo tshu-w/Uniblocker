@@ -37,7 +37,6 @@ class Blocking(LightningDataModule):
     def __init__(
         self,
         data_dir: str = "./data/blocking/walmart-amazon_heter",
-        index_col: str = "id",
         batch_size: int = 32,
         num_workers: int = 0,
         pin_memory: bool = False,
@@ -50,10 +49,7 @@ class Blocking(LightningDataModule):
 
     def setup(self, stage: Optional[str] = None) -> None:
         if not hasattr(self, "datasets"):
-            self.datasets = [
-                TableDataset(t, index_col=self.hparams.index_col)
-                for t in self.table_paths
-            ]
+            self.datasets = [TableDataset(t) for t in self.table_paths]
 
             if (
                 isinstance(self.trainer.model, DeepBlocker)

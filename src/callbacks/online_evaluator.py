@@ -22,7 +22,6 @@ class OnlineEvaluator(Callback):
         stage: Optional[str] = None,
     ) -> None:
         datamodule = trainer.datamodule or module
-        datamodule.hparams.index_col = self.datamodule.hparams.index_col
 
         self.datamodule.trainer = trainer
         self.datamodule.setup()
