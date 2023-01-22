@@ -9,7 +9,6 @@ from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from src.models import DeepBlocker
-from src.utils import dict2tuples
 from src.utils.sequential_loader import SequentialLoader
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -24,18 +23,14 @@ class TableDataset(Dataset):
         table_path: Path,
         index_col: str = "id",
     ):
-        self.df = pd.read_csv(table_path, low_memory=False)
-        self.df = self.df.fillna("")
-        columns = list(self.df.columns)
-        columns.remove(index_col)
-        self.df[columns] = self.df[columns].astype(str)
-        self.index_col = index_col
+        self.df = pd.read_csv(table_path, index_col=index_col, low_memory=False)
+        self.df = self.df.fillna("").astype(str)
 
     def __len__(self) -> int:
         return len(self.df)
 
-    def __getitem__(self, index) -> list[tuple]:
-        return dict2tuples(self.df.iloc[index].to_dict(), ignored_cols=[self.index_col])
+    def __getitem__(self, index) -> dict:
+        return self.df.iloc[index].to_dict()
 
 
 class Blocking(LightningDataModule):

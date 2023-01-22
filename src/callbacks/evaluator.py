@@ -12,7 +12,6 @@ from torch.utils.data import DataLoader, IterableDataset
 from torch.utils.data.dataloader import default_collate
 from tqdm import tqdm
 
-from src.datamodules.blocking import dict2tuples
 from src.utils import chunks, evaluate, get_candidates
 
 
@@ -56,15 +55,17 @@ class Evaluator(Callback):
             n_neighbors=self.n_neighbors,
         )
 
-        datasets = [Dataset.from_pandas(ds.df) for ds in datamodule.datasets]
+        datasets = [
+            Dataset.from_pandas(ds.df, preserve_index=False)
+            for ds in datamodule.datasets
+        ]
         datasets = Evaluator.build_index(
             datasets,
             module=module,
             datamodule=datamodule,
-            index_col=index_col,
         )
         indices_list = knn_join(quries=datasets[0], index=datasets[-1])
-        dfs = [d.to_pandas().set_index(index_col) for d in datasets]
+        dfs = [ds.df for ds in datamodule.datasets]
 
         candidates = get_candidates(dfs, indices_list)
         matches = datamodule.matches
@@ -90,14 +91,12 @@ class Evaluator(Callback):
         datasets: list[Dataset],
         module: pl.LightningModule,
         datamodule: pl.LightningDataModule,
-        index_col: str,
     ) -> list[Dataset]:
         @torch.no_grad()
         def encode(batch: dict[list]):
             collate_fn = getattr(module, "collate_fn", default_collate)
 
             batch: list[dict] = [dict(zip(batch, t)) for t in zip(*batch.values())]
-            batch = [dict2tuples(r, ignored_cols=[index_col]) for r in batch]
             batch = move_data_to_device(collate_fn(batch), module.device)
 
             embeddings = F.normalize(module(batch).detach()).to("cpu").numpy()

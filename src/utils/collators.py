@@ -12,7 +12,7 @@ import torch
 from transformers import DataCollatorForLanguageModeling, PreTrainedTokenizer
 
 from .augment import Augmenter
-from .helpers import tuples2str
+from .helpers import record2str
 
 
 @dataclass
@@ -22,9 +22,9 @@ class TransformerCollator:
 
     def __call__(
         self,
-        batch: list[list[tuple]],
+        batch: list[dict],
     ) -> dict[str, any]:
-        texts = list(map(tuples2str, batch))
+        texts = list(map(record2str, batch))
         features = self.tokenizer(
             texts,
             padding="max_length",
@@ -41,14 +41,14 @@ class TransformerCollatorWithAugmenter(TransformerCollator):
 
     def __call__(
         self,
-        batch: list[list[tuple]],
+        batch: list[dict],
     ) -> dict[str, any]:
         features = super().__call__(batch)
         if self.augmenter is None or not torch.is_grad_enabled():
             return features
 
         augmented_batch = list(map(self.augmenter, batch))
-        augmented_texts = list(map(tuples2str, augmented_batch))
+        augmented_texts = list(map(record2str, augmented_batch))
 
         augmented_features = self.tokenizer(
             augmented_texts,
@@ -85,13 +85,13 @@ class TransformerCollatorWithDistances(TransformerCollatorWithAugmenter):
 
     def __call__(
         self,
-        batch: list[list[tuple]],
+        batch: list[dict],
     ) -> dict[str, any]:
         if not torch.is_grad_enabled():
             return super().__call__(batch)
 
         features = super().__call__(batch)
-        texts = list(map(tuples2str, batch))
+        texts = list(map(record2str, batch))
         batch_size = len(texts)
         distances = list(starmap(self.sparse_similarity, product(texts, texts)))
         distances = torch.Tensor(
@@ -116,12 +116,12 @@ class RetroMAECollator(TransformerCollator, DataCollatorForLanguageModeling):
 
     def __call__(
         self,
-        batch: list[list[tuple]],
+        batch: list[dict],
     ) -> dict[str, any]:
         if not torch.is_grad_enabled():
             return super().__call__(batch)
 
-        texts = list(map(tuples2str, batch))
+        texts = list(map(record2str, batch))
         feature = self.tokenizer(
             texts,
             padding="max_length",
@@ -172,12 +172,12 @@ class LexMAECollator(TransformerCollator, DataCollatorForLanguageModeling):
 
     def __call__(
         self,
-        batch: list[list[tuple]],
+        batch: list[dict],
     ) -> dict[str, any]:
         if not torch.is_grad_enabled():
             return super().__call__(batch)
 
-        texts = list(map(tuples2str, batch))
+        texts = list(map(record2str, batch))
         feature = self.tokenizer(
             texts,
             padding="max_length",

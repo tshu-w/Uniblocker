@@ -20,9 +20,9 @@ class Aggregator(ABC):
 
 
 class AverageAggregator(Aggregator):
-    def __call__(self, batch: list):
+    def __call__(self, batch: list[dict]):
         embeddings = []
-        texts = [" ".join(t[1] for t in r) for r in batch]
+        texts = [" ".join(str(v).casefold() for v in r.values() if v) for r in batch]
         for text in texts:
             embedding_list = [
                 self.embedder.get_word_vector(token) for token in self.tokenizer(text)
@@ -54,7 +54,7 @@ class SIFAggregator(Aggregator):
         token_counter = Counter()
         texts = []
         for idx in range(len(ds)):
-            text = " ".join(t[1] for t in ds[idx])
+            text = " ".join(str(v).casefold() for v in ds[idx].values() if v)
             texts.append(text)
             token_counter.update(self.tokenizer(text))
 
@@ -92,9 +92,9 @@ class SIFAggregator(Aggregator):
             assert (embeddings.dot(pc.transpose()) * pc == embeddings @ pc.T * pc).all()
             self.pc = pc
 
-    def __call__(self, batch: list):
+    def __call__(self, batch: list[dict]):
         embeddings = []
-        texts = [" ".join(t[1] for t in r) for r in batch]
+        texts = [" ".join(str(v).casefold() for v in r.values() if v) for r in batch]
         for text in texts:
             embedding_list = [
                 self.token_weight[token] * self.embedder.get_word_vector(token)

@@ -7,11 +7,5 @@ def chunks(lst: Iterable, n: int) -> Iterator[Iterable]:
         yield lst[i : i + n]
 
 
-def dict2tuples(record: dict, ignored_cols: list[str] = ["id"]) -> list[tuple]:
-    record = list(filter(lambda x: x[0] not in ignored_cols, record.items()))
-    record = list((str(t[0]).casefold(), str(t[1]).casefold()) for t in record if t[1])
-    return record
-
-
-def tuples2str(record: list[tuple]) -> str:
-    return " ".join([t[1] for t in record])
+def record2str(record: dict) -> str:
+    return " ".join(str(v).casefold() for v in record.values() if v)

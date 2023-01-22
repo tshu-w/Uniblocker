@@ -43,29 +43,28 @@ class Augmenter(Callable):
     ) -> None:
         self.probability = probability
 
-    def __call__(self, record: list[tuple]) -> list[tuple]:
+    def __call__(self, record: dict) -> dict:
         augmented_record = record.copy()
         if bernoulli.rvs(self.probability):
             try:
                 action = random.choice(self.actions)
-                idx = random.choice(range(len(augmented_record)))
-                tp = augmented_record[idx]
-                augmented_value = action.augment(tp[1])
+                key = random.choice(list(augmented_record.keys()))
+                value = augmented_record[key]
+                augmented_value = action.augment(value)
                 if isinstance(augmented_value, list):
                     augmented_value = augmented_value[0]
-                augmented_tp = tp[0], augmented_value
-                augmented_record[idx] = augmented_tp
-            except:
-                ...
+                augmented_record[key] = augmented_value
+            except Exception as e:
+                print(e)
 
         return augmented_record
 
 
 if __name__ == "__main__":
     augmenter = Augmenter(probability=1)
-    record = [
-        ("content", "vldb conference papers 2020-01-01"),
-        ("year", "2020"),
-    ]
+    record = {
+        "content": "vldb conference papers 2020-01-01",
+        "year": "2020",
+    }
     for i in range(10):
         print(repr(augmenter(record)))

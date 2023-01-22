@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 from torch.utils.data import IterableDataset
 
-from src.utils import check_table, dict2tuples
+from src.utils import check_table
 
 
 class GitTablesDataset(IterableDataset):
@@ -21,7 +21,7 @@ class GitTablesDataset(IterableDataset):
         if data_files is not None:
             self.data_files = [data_dir / f for f in data_files]
 
-    def __iter__(self) -> list[tuple]:
+    def __iter__(self) -> dict:
         worker_info = torch.utils.data.get_worker_info()
         for i, f in enumerate(self.data_files or self.data_dir.rglob("*.parquet")):
             if worker_info is None or i % worker_info.num_workers == worker_info.id:
@@ -33,5 +33,5 @@ class GitTablesDataset(IterableDataset):
                     continue
 
                 if check_table(df):
-                    df = df.fillna("")
-                    yield from map(dict2tuples, df.to_dict("records"))
+                    df = df.fillna("").astype(str)
+                    yield from df.to_dict("records")
