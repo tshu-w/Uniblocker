@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Literal, Optional, Union
+from typing import Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -85,35 +85,20 @@ def sparse_join(
     index_col: str = "id",
     tokenizer: Optional[Callable] = None,
     n_neighbors: int = 100,
-    direction: Literal["forward", "reversed", "both"] = "forward",
 ):
     table_paths = sorted(Path(data_dir).glob("[1-2]*.csv"))
-
     dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
-    corpuses = [convert_df_to_corpus(df) for df in dfs]
 
     matches_path = Path(data_dir) / "matches.csv"
     matches = set(pd.read_csv(matches_path).itertuples(index=False, name=None))
 
-    vectorizers = [fit_vectorizer(corpus, tokenizer=tokenizer) for corpus in corpuses]
-    indexes = [
-        build_index(corpus, vectorizer, n_neighbors=n_neighbors)
-        for corpus, vectorizer in zip(corpuses, vectorizers)
-    ]
+    queries = convert_df_to_corpus(dfs[0])
+    corpus = convert_df_to_corpus(dfs[-1])
+    vectorizer = fit_vectorizer(corpus, tokenizer=tokenizer)
+    index = build_index(corpus, vectorizer, n_neighbors=n_neighbors)
+    indices_list = knn_join(queries, vectorizer, index)
 
-    if len(corpuses) == 1:
-        indices_list = [knn_join(corpuses[0], vectorizers[0], indexes[0])]
-    else:
-        indices_list = [
-            knn_join(corpuses[0], vectorizers[1], indexes[1]),
-            knn_join(corpuses[1], vectorizers[0], indexes[0]),
-        ]
-
-    candidates = get_candidates(
-        dfs,
-        indices_list,
-        direction=direction,
-    )
+    candidates = get_candidates(dfs, indices_list)
     metrics = evaluate(candidates, matches)
 
     print(metrics)
