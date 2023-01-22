@@ -10,7 +10,7 @@ from pytorch_lightning.utilities.types import STEP_OUTPUT
 from torch import nn
 from torchtext.data import get_tokenizer
 
-from src.utils.aggregators import AGGREGATOR_TYPE, get_aggregator
+from src.models.modules.aggregators import AGGREGATOR_TYPE, get_aggregator
 
 fasttext.FastText.eprint = lambda *args, **kwargs: None
 
