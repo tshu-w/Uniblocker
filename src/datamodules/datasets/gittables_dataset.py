@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 from torch.utils.data import IterableDataset
 
-from src.utils import check_table
+from src.utils.table_detector import check_table
 
 
 class GitTablesDataset(IterableDataset):

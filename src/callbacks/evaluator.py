@@ -1,17 +1,10 @@
-from functools import partial
-
-import numpy as np
 import pytorch_lightning as pl
-import torch
-import torch.nn.functional as F
-from datasets import Dataset
 from pytorch_lightning import Callback
-from pytorch_lightning.utilities import move_data_to_device
 from torch.utils.data import DataLoader, IterableDataset
 from torch.utils.data.dataloader import default_collate
-from tqdm import tqdm
 
-from src.utils import chunks, evaluate, get_candidates
+from src.utils import evaluate
+from src.utils.nns_blocker import FaissIndexer, NeuralConverter, NNSBlocker
 
 
 class EmptyIterDataset(IterableDataset):
@@ -37,24 +30,14 @@ class Evaluator(Callback):
 
     def evaluate(self, trainer: pl.Trainer, module: pl.LightningModule) -> None:
         datamodule = trainer.datamodule or module
-        knn_join = partial(
-            Evaluator.knn_join,
-            n_neighbors=self.n_neighbors,
-        )
 
-        datasets = [
-            Dataset.from_pandas(ds.df, preserve_index=False)
-            for ds in datamodule.datasets
-        ]
-        datasets = Evaluator.build_index(
-            datasets,
-            module=module,
-            datamodule=datamodule,
-        )
-        indices_list = knn_join(quries=datasets[0], index=datasets[-1])
         dfs = [ds.df for ds in datamodule.datasets]
+        collate_fn = getattr(module, "collate_fn", default_collate)
+        converter = NeuralConverter(module, collate_fn, module.device)
+        indexer = FaissIndexer()
+        blocker = NNSBlocker(dfs, converter, indexer)
+        candidates = blocker(k=self.n_neighbors)
 
-        candidates = get_candidates(dfs, indices_list)
         matches = datamodule.matches
         results = evaluate(candidates, matches)
 
@@ -72,55 +55,3 @@ class Evaluator(Callback):
         self, trainer: pl.Trainer, module: pl.LightningModule
     ) -> None:
         self.evaluate(trainer, module)
-
-    @staticmethod
-    def build_index(
-        datasets: list[Dataset],
-        module: pl.LightningModule,
-        datamodule: pl.LightningDataModule,
-    ) -> list[Dataset]:
-        @torch.no_grad()
-        def encode(batch: dict[list]):
-            collate_fn = getattr(module, "collate_fn", default_collate)
-
-            batch: list[dict] = [dict(zip(batch, t)) for t in zip(*batch.values())]
-            batch = move_data_to_device(collate_fn(batch), module.device)
-
-            embeddings = F.normalize(module(batch).detach()).to("cpu").numpy()
-
-            return {"embeddings": embeddings.astype(np.float32)}
-
-        batch_size = datamodule.hparams.batch_size
-
-        for i, dataset in enumerate(datasets):
-            datasets[i] = dataset.map(
-                encode,
-                batched=True,
-                batch_size=batch_size,
-                load_from_cache_file=False,
-            )
-            datasets[i].add_faiss_index(column="embeddings", faiss_verbose=True)
-            datasets[i].set_format("numpy")
-
-        return datasets
-
-    @staticmethod
-    def knn_join(
-        n_neighbors: int,
-        *,
-        quries: Dataset,
-        index: Dataset,
-        chunk_size: int = 64,
-    ) -> list[list[int]]:
-        indices_list = []
-        for record in tqdm(list(chunks(quries, chunk_size))):
-            b_queries = record["embeddings"]
-            scores, indices = index.search_batch(
-                index_name="embeddings", queries=b_queries, k=n_neighbors
-            )
-            assert np.all(np.diff(scores) >= 0)
-            indices_list.append(indices)
-
-        indices = np.concatenate(indices_list).tolist()
-
-        return indices

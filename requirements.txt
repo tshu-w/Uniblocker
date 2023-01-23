@@ -4,7 +4,6 @@ pytorch-lightning[extra] >= 1.9.0
 jsonargparse[signatures] # for CLI
 
 transformers >= 4.25.0
-datasets >= 2.8.0
 
 faiss-cpu
 
