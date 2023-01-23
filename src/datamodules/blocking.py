@@ -9,12 +9,23 @@ from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from src.models import DeepBlocker
-from src.utils.sequential_loader import SequentialLoader
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
 )
+
+
+class SequentialLoader:
+    def __init__(self, *dataloaders: DataLoader):
+        self.dataloaders = dataloaders
+
+    def __len__(self):
+        return sum(len(d) for d in self.dataloaders)
+
+    def __iter__(self):
+        for dataloader in self.dataloaders:
+            yield from dataloader
 
 
 class TableDataset(Dataset):
