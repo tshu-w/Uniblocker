@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
+from collections import Counter
 from typing import NamedTuple, Optional
 
 import faiss
 import numpy as np
+import pyterrier as pt
+from sklearn.neighbors import NearestNeighbors
 
 
 class SearchResult(NamedTuple):
@@ -40,58 +43,108 @@ class SklearnIndexer(Indexer):
         self.nn_kwargs = nn_kwargs
 
     def build_index(self, data):
-        from sklearn.neighbors import NearestNeighbors
 
-        self._index = NearestNeighbors(**self.nn_kwargs)
-        self._index.fit(data)
+        self._indexer = NearestNeighbors(**self.nn_kwargs)
+        self._indexer.fit(data)
 
     def batch_search(self, queries, k: int = 10) -> BatchSearchResult:
-        distances, indices = self._index.kneighbors(queries, n_neighbors=k)
+        n_neighbors = min(k, self._indexer.n_samples_fit_)
+        distances, indices = self._indexer.kneighbors(queries, n_neighbors=n_neighbors)
         return BatchSearchResult(distances.tolist(), indices.tolist())
 
 
-class LuceneIndexer(Indexer):
-    ...
+class TerrierIndexer(Indexer):
+    def __init__(
+        self,
+        index_location: str,
+        index_kwargs: dict,
+        search_kwargs: dict,
+    ):
+        super().__init__()
+        if not pt.started():
+            pt.init()
+        self.index_location = index_location
+        self.index_kwargs = index_kwargs
+        self.searcher_kwargs = search_kwargs
+
+    def build_index(self, data):
+        self._indexer = pt.IterDictIndexer(self.index_location, **self.index_kwargs)
+        data = data.apply(Counter)
+        data.reset_index(inplace=True, drop=True)
+        data = data.to_frame("toks")
+        data.index.names = ["docno"]
+        data = data.reset_index()
+        data.docno = data.docno.astype("str")
+        self._indexer = self._indexer.index(data.to_dict(orient="records"))
+        self._searcher = pt.BatchRetrieve(
+            self._indexer, num_results=100, **self.searcher_kwargs
+        )
+        self._searcher = (
+            pt.rewrite.tokenise(lambda x: x, matchop=True) >> self._searcher
+        )
+
+    def batch_search(self, queries, k: int = 10) -> BatchSearchResult:
+        self._searcher[1].controls["end"] = str(k - 1)
+
+        queries.reset_index(inplace=True, drop=True)
+        queries = queries.to_frame("query")
+        queries.index.names = ["qid"]
+        queries = queries.reset_index()
+        queries["qid"] = queries["qid"].astype("str")
+        results = self._searcher.transform(queries)
+
+        scores, indices = [], []
+        lst_qid = -1
+        for r in results.itertuples():
+            if r.qid != lst_qid:
+                scores.append([])
+                indices.append([])
+
+            lst_qid = r.qid
+            scores[-1].append(r.score)
+            indices[-1].append(r.docid)
+
+        return BatchSearchResult(scores, indices)
 
 
 class FaissIndexer(Indexer):
     def __init__(
         self,
         *,
-        index_factory: str = "Flat",
+        indexer_factory: str = "Flat",
         metric_type: Optional[int] = None,
     ):
         super().__init__()
-        self.index_factory = index_factory
+        self.indexer_factory = indexer_factory
         self.metric_type = metric_type
 
     def build_index(
         self,
-        data: np.array,
+        data,
         *,
         train_size: Optional[int] = None,
         batch_size: int = 1000,
     ):
         size = len(data[0])
         if self.metric_type is None:
-            self._index = faiss.index_factory(size, self.index_factory)
+            self._indexer = faiss.index_factory(size, self.indexer_factory)
         else:
-            self._index = faiss.index_factory(
+            self._indexer = faiss.index_factory(
                 size, self.index_factory, self.metric_type
             )
 
         if train_size is not None:
             train_data = data[:train_size]
-            self._index.train(train_data)
+            self._indexer.train(train_data)
 
         for i in range(0, len(data), batch_size):
             batch_data = data[i : i + batch_size]
-            self._index.add(batch_data)
+            self._indexer.add(batch_data)
 
-    def batch_search(self, queries: np.array, k: int = 10) -> BatchSearchResult:
+    def batch_search(self, queries, k: int = 10) -> BatchSearchResult:
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
-        scores, indices = self._index.search(queries, k)
+        scores, indices = self._indexer.search(queries, k)
         return BatchSearchResult(scores.tolist(), indices.astype(int).tolist())
 
 

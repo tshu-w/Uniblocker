@@ -1,6 +1,5 @@
 from typing import Callable
 
-import numpy as np
 import pandas as pd
 
 from src.utils import chunks
@@ -30,15 +29,17 @@ class NNSBlocker:
 
         total_indices = []
         for b_queries in chunks(queries, batch_size):
-            b_scores, b_indices = self.indexer.batch_search(b_queries, k=k)
-            assert np.all(np.diff(b_scores) >= 0)
+            _, b_indices = self.indexer.batch_search(b_queries, k=k)
             total_indices.extend(b_indices)
 
         candidates = []
         flags = set()  # Comparison Propagation
-        for i in range(len(total_indices[0])):
+        for i in range(k):
             cands = set()
             for j in range(len(total_indices)):
+                if i >= len(total_indices[j]):
+                    continue
+
                 ind1 = j
                 ind2 = total_indices[j][i]
                 if len(self.dfs) == 1 and ind1 > ind2:

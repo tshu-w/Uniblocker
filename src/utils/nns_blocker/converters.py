@@ -35,14 +35,25 @@ class CountVectorizerConverter(Converter):
             binary=binary,
         )
         df = df.fillna("").astype(str)
-        text = df.astype(str).apply(lambda row: " ".join(row).lower(), axis=1)
-        corpus = text.to_list()
+        corpus = df.apply(lambda row: " ".join(row).lower(), axis=1).to_list()
         self.vectorizer.fit_transform(corpus)
 
     def __call__(self, df: pd.DataFrame):
         df = df.fillna("").astype(str)
         corpus = df.apply(lambda row: " ".join(row).lower(), axis=1).to_list()
         return self.vectorizer.transform(corpus)
+
+
+class TerrierConverter(Converter):
+    def __init__(
+        self,
+        tokenizer: Callable,
+    ):
+        self.tokenizer = tokenizer
+
+    def __call__(self, df: pd.DataFrame):
+        df = df.fillna("").astype(str)
+        return df.apply(lambda row: self.tokenizer(" ".join(row).lower()), axis=1)
 
 
 class NeuralConverter(Converter):
