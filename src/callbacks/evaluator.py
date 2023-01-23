@@ -1,5 +1,4 @@
 from functools import partial
-from typing import Optional
 
 import numpy as np
 import pytorch_lightning as pl
@@ -35,17 +34,6 @@ class Evaluator(Callback):
     ) -> None:
         super().__init__()
         self.n_neighbors = n_neighbors
-
-    def setup(
-        self,
-        trainer: pl.Trainer,
-        module: pl.LightningModule,
-        stage: Optional[str] = None,
-    ) -> None:
-        datamodule = trainer.datamodule or module
-        module.validation_step = module.test_step = empty_fun
-        datamodule.val_dataloader = empty_dataloader
-        datamodule.test_dataloader = empty_dataloader
 
     def evaluate(self, trainer: pl.Trainer, module: pl.LightningModule) -> None:
         datamodule = trainer.datamodule or module
