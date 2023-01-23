@@ -51,11 +51,15 @@ class Augmenter(Callable):
                 key = random.choice(list(augmented_record.keys()))
                 value = augmented_record[key]
                 augmented_value = action.augment(value)
-                if isinstance(augmented_value, list):
+                if isinstance(augmented_value, list) and len(augmented_value):
                     augmented_value = augmented_value[0]
+                else:
+                    augmented_value = value
                 augmented_record[key] = augmented_value
-            except Exception as e:
-                print(e)
+            except:
+                # import traceback
+                # traceback.print_exc()
+                ...
 
         return augmented_record
 
