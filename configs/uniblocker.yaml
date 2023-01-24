@@ -4,7 +4,7 @@ trainer:
   callbacks+:
     - class_path: Evaluator
 model:
-  class_path: src.models.RecordFormer
+  class_path: src.models.UniBlocker
   init_args:
     model_name_or_path: models/roberta-base
     max_length: 256
