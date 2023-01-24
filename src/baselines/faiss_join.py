@@ -17,21 +17,23 @@ def faiss_join(
     size: str = "",
     index_col: str = "id",
     n_neighbors: int = 100,
+    device_id: int = 0,
 ):
     table_paths = sorted(Path(data_dir).glob(f"[1-2]*{size}.csv"))
     dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
 
     collate_fn = getattr(model, "collate_fn", default_collate)
-    device = "cuda:0"
-    model = model.to(device)
+    model = model.to(device_id)
 
     # https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index
     nlist = int(4 * sqrt(len(dfs[-1])))
     index_factory = f"IVF{nlist},Flat"
     nprobe = min(100, nlist)
 
-    converter = NeuralConverter(model, collate_fn, device)
-    indexer = FaissIndexer(index_factory=index_factory, nprobe=nprobe)
+    converter = NeuralConverter(model, collate_fn, device_id)
+    indexer = FaissIndexer(
+        index_factory=index_factory, nprobe=nprobe, device_id=device_id
+    )
     blocker = NNSBlocker(dfs, converter, indexer)
     candidates = blocker(k=n_neighbors)
 

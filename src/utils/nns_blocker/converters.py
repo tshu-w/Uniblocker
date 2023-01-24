@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -57,7 +57,9 @@ class SparseConverter(Converter):
 
 
 class NeuralConverter(Converter):
-    def __init__(self, model: nn.Module, collate_fn: Callable, device: str = "cpu"):
+    def __init__(
+        self, model: nn.Module, collate_fn: Callable, device: Union[str, int] = "cpu"
+    ):
         self.model = model
         self.collate_fn = collate_fn
         self.device = device
