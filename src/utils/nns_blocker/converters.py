@@ -34,14 +34,26 @@ class CountVectorizerConverter(Converter):
             ngram_range=(1, 1) if tokenizer else (5, 5),
             binary=binary,
         )
+
+        self.is_qgram_tokenizer = (
+            hasattr(tokenizer, "__self__")
+            and tokenizer.__self__.__class__.__name__ == "QgramTokenizer"
+        )
         df = df.fillna("").astype(str)
-        corpus = df.apply(lambda row: " ".join(row).lower(), axis=1).to_list()
+        corpus = df.apply(self.preprocess, axis=1).to_list()
         self.vectorizer.fit_transform(corpus)
 
     def __call__(self, df: pd.DataFrame):
         df = df.fillna("").astype(str)
-        corpus = df.apply(lambda row: " ".join(row).lower(), axis=1).to_list()
+        corpus = df.apply(self.preprocess, axis=1).to_list()
         return self.vectorizer.transform(corpus)
+
+    def preprocess(self, row):
+        s = " ".join(row).lower()
+        if self.is_qgram_tokenizer:
+            # replace space with special character like BPE tokenizer
+            s = s.replace(" ", "Ġ")
+        return s
 
 
 class SparseConverter(Converter):
@@ -50,10 +62,21 @@ class SparseConverter(Converter):
         tokenizer: Callable,
     ):
         self.tokenizer = tokenizer
+        self.is_qgram_tokenizer = (
+            hasattr(tokenizer, "__self__")
+            and tokenizer.__self__.__class__.__name__ == "QgramTokenizer"
+        )
 
     def __call__(self, df: pd.DataFrame):
+        def tokenize_row(row):
+            s = " ".join(row).lower()
+            if self.is_qgram_tokenizer:
+                # replace space with special character like BPE tokenizer
+                s = s.replace(" ", "Ġ")
+            return self.tokenizer(s)
+
         df = df.fillna("").astype(str)
-        return df.apply(lambda row: self.tokenizer(" ".join(row).lower()), axis=1)
+        return df.apply(tokenize_row, axis=1)
 
 
 class NeuralConverter(Converter):
