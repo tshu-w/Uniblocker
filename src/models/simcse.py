@@ -48,6 +48,11 @@ class SimCSE(LightningModule):
         return pooled_output
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
+        if isinstance(batch, list):
+            x1, x2 = batch
+        else:
+            x1 = x2 = batch
+
         z1, z2 = self.forward(x1), self.forward(x2)
 
         if self.trainer.strategy.strategy_name.startswith("ddp"):

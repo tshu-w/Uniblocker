@@ -56,7 +56,7 @@ class Augmenter(Callable):
                 else:
                     augmented_value = value
                 augmented_record[key] = augmented_value
-            except:
+            except:  # noqa
                 # import traceback
                 # traceback.print_exc()
                 ...
