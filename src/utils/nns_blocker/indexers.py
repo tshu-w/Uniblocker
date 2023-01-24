@@ -61,8 +61,6 @@ class TerrierIndexer(Indexer):
         search_kwargs: dict,
     ):
         super().__init__()
-        if not pt.started():
-            pt.init()
         self.index_location = index_location
         self.index_kwargs = index_kwargs
         self.searcher_kwargs = search_kwargs
@@ -111,31 +109,31 @@ class FaissIndexer(Indexer):
     def __init__(
         self,
         *,
-        indexer_factory: str = "Flat",
+        index_factory: str = "Flat",
+        nprobe: int = 1,
         metric_type: Optional[int] = None,
     ):
         super().__init__()
-        self.indexer_factory = indexer_factory
+        self.index_factory = index_factory
+        self.nprobe = nprobe
         self.metric_type = metric_type
 
     def build_index(
         self,
         data,
         *,
-        train_size: Optional[int] = None,
         batch_size: int = 1000,
     ):
         size = len(data[0])
         if self.metric_type is None:
-            self._indexer = faiss.index_factory(size, self.indexer_factory)
+            self._indexer = faiss.index_factory(size, self.index_factory)
         else:
             self._indexer = faiss.index_factory(
                 size, self.index_factory, self.metric_type
             )
 
-        if train_size is not None:
-            train_data = data[:train_size]
-            self._indexer.train(train_data)
+        self._indexer.nprobe = self.nprobe
+        self._indexer.train(data)
 
         for i in range(0, len(data), batch_size):
             batch_data = data[i : i + batch_size]

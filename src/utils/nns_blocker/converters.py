@@ -63,7 +63,7 @@ class NeuralConverter(Converter):
         self.device = device
 
     @torch.no_grad()
-    def __call__(self, df: pd.DataFrame, batch_size: int = 1):
+    def __call__(self, df: pd.DataFrame, batch_size: int = 512):
         df = df.fillna("").astype(str)
         records = df.to_dict(orient="records")
         embeddings = []

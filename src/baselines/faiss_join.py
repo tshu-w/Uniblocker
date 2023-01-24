@@ -1,26 +1,37 @@
+from math import sqrt
 from pathlib import Path
-from typing import Callable, Optional
 
 import pandas as pd
+import torch.nn as nn
 from jsonargparse import CLI
 from rich import print
+from torch.utils.data.dataloader import default_collate
 
 from src.utils import evaluate
-from src.utils.nns_blocker import CountVectorizerConverter, NNSBlocker, SklearnIndexer
+from src.utils.nns_blocker import FaissIndexer, NeuralConverter, NNSBlocker
 
 
-def sparse_join(
+def faiss_join(
+    model: nn.Module,
     data_dir: str = "./data/blocking/cora",
     size: str = "",
     index_col: str = "id",
-    tokenizer: Optional[Callable] = None,
     n_neighbors: int = 100,
 ):
     table_paths = sorted(Path(data_dir).glob(f"[1-2]*{size}.csv"))
     dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
 
-    converter = CountVectorizerConverter(dfs[-1], tokenizer)
-    indexer = SklearnIndexer(metric="cosine")
+    collate_fn = getattr(model, "collate_fn", default_collate)
+    device = "cuda:0"
+    model = model.to(device)
+
+    # https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index
+    nlist = int(4 * sqrt(len(dfs[-1])))
+    index_factory = f"IVF{nlist},Flat"
+    nprobe = min(100, nlist)
+
+    converter = NeuralConverter(model, collate_fn, device)
+    indexer = FaissIndexer(index_factory=index_factory, nprobe=nprobe)
     blocker = NNSBlocker(dfs, converter, indexer)
     candidates = blocker(k=n_neighbors)
 
@@ -37,4 +48,4 @@ def sparse_join(
 
 
 if __name__ == "__main__":
-    CLI(sparse_join)
+    CLI(faiss_join)

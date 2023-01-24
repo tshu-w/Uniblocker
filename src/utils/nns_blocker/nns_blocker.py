@@ -1,6 +1,7 @@
 from typing import Callable
 
 import pandas as pd
+from codetiming import Timer
 
 from src.utils import chunks
 
@@ -23,14 +24,17 @@ class NNSBlocker:
         batch_size: int = 128,
         k: int = 100,
     ) -> list[set[tuple]]:
-        queries = self.converter(self.dfs[0])
-        data = self.converter(self.dfs[-1])
-        self.indexer.build_index(data)
+        with Timer(text="Convert time: {milliseconds:.0f} ms"):
+            queries = self.converter(self.dfs[0])
+            data = self.converter(self.dfs[-1])
+        with Timer(text="Index time: {milliseconds:.0f} ms"):
+            self.indexer.build_index(data)
 
         total_indices = []
-        for b_queries in chunks(queries, batch_size):
-            _, b_indices = self.indexer.batch_search(b_queries, k=k)
-            total_indices.extend(b_indices)
+        with Timer(text="Total Query time: {milliseconds:.0f} ms"):
+            for b_queries in chunks(queries, batch_size):
+                _, b_indices = self.indexer.batch_search(b_queries, k=k)
+                total_indices.extend(b_indices)
 
         candidates = []
         flags = set()  # Comparison Propagation

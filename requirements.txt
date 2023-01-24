@@ -5,8 +5,6 @@ jsonargparse[signatures] # for CLI
 
 transformers >= 4.25.0
 
-faiss-cpu
-
 scikit-learn
 pyjnius
 pytorch-metric-learning
@@ -15,6 +13,10 @@ nlpaug
 # required by nlpaug
 nltk
 gensim
+
+faiss-cpu
+python-terrier
+codetiming
 
 # required by DeepBlocker
 fasttext
