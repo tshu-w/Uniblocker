@@ -107,9 +107,8 @@ class Blockings(LightningDataModule):
         if not hasattr(self, "tables"):
             self.tables = []
             for d in self.data_dir.iterdir():
-                if d.name not in ["songs", "citeseer-dblp"]:
-                    table_paths = sorted(Path(d).glob("[1-2]*.csv"))
-                    self.tables.extend([TableDataset(t) for t in table_paths])
+                table_paths = sorted(Path(d).glob("[1-2]*.csv"))
+                self.tables.extend([TableDataset(t) for t in table_paths])
 
         self.collate_fn = getattr(self.trainer.model, "collate_fn", None)
         self.hparams.num_workers = self.trainer.num_devices * 8
