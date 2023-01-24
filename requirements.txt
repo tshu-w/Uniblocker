@@ -14,9 +14,10 @@ nlpaug
 nltk
 gensim
 
+codetiming
 faiss-cpu
 python-terrier
-codetiming
+pyserini
 
 # required by DeepBlocker
 fasttext

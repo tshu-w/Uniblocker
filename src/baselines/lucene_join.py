@@ -4,7 +4,6 @@ from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
-import pyterrier as pt
 from jsonargparse import CLI
 from rich import print
 
@@ -14,13 +13,10 @@ np.float = float
 from py_stringmatching.tokenizer.whitespace_tokenizer import WhitespaceTokenizer
 
 from src.utils import evaluate
-from src.utils.nns_blocker import NNSBlocker, SparseConverter, TerrierIndexer
-
-if not pt.started():
-    pt.init()
+from src.utils.nns_blocker import LuceneIndexer, NNSBlocker, SparseConverter
 
 
-def terrier_join(
+def lucene_join(
     data_dir: str = "./data/blocking/cora",
     size: str = "",
     index_col: str = "id",
@@ -35,19 +31,7 @@ def terrier_join(
 
     with tempfile.TemporaryDirectory() as tmpdir:
         converter = SparseConverter(tokenizer)
-        indexer = TerrierIndexer(
-            index_location=tmpdir,
-            index_kwargs={
-                "pretokenised": True,
-                "stemmer": None,
-                "stopwords": None,
-                "type": pt.index.IndexingType.SINGLEPASS,
-            },
-            search_kwargs={
-                "controls": {"wmodel": "BM25"},
-                "properties": {"termpipelines": ""},
-            },
-        )
+        indexer = LuceneIndexer(save_dir=tmpdir)
         blocker = NNSBlocker(dfs, converter, indexer)
         candidates = blocker(k=n_neighbors)
 
@@ -64,4 +48,4 @@ def terrier_join(
 
 
 if __name__ == "__main__":
-    CLI(terrier_join)
+    CLI(lucene_join)

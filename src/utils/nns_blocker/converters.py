@@ -44,7 +44,7 @@ class CountVectorizerConverter(Converter):
         return self.vectorizer.transform(corpus)
 
 
-class TerrierConverter(Converter):
+class SparseConverter(Converter):
     def __init__(
         self,
         tokenizer: Callable,
