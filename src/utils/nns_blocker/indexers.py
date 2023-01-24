@@ -1,7 +1,6 @@
 import itertools
 import shlex
 from abc import ABC, abstractmethod
-from collections import Counter
 from pathlib import Path
 from runpy import run_module
 from typing import NamedTuple, Optional
@@ -9,7 +8,6 @@ from unittest.mock import patch
 
 import faiss
 import numpy as np
-import pyterrier as pt
 from pyserini.analysis import JWhiteSpaceAnalyzer
 from pyserini.search import LuceneSearcher
 from sklearn.neighbors import NearestNeighbors
@@ -58,58 +56,6 @@ class SklearnIndexer(Indexer):
         n_neighbors = min(k, self._indexer.n_samples_fit_)
         distances, indices = self._indexer.kneighbors(queries, n_neighbors=n_neighbors)
         return BatchSearchResult(distances.tolist(), indices.tolist())
-
-
-class TerrierIndexer(Indexer):
-    def __init__(
-        self,
-        index_location: str,
-        index_kwargs: dict,
-        search_kwargs: dict,
-    ):
-        super().__init__()
-        self.index_location = index_location
-        self.index_kwargs = index_kwargs
-        self.searcher_kwargs = search_kwargs
-
-    def build_index(self, data):
-        self._indexer = pt.IterDictIndexer(self.index_location, **self.index_kwargs)
-        data = data.apply(Counter)
-        data.reset_index(inplace=True, drop=True)
-        data = data.to_frame("toks")
-        data.index.names = ["docno"]
-        data = data.reset_index()
-        data["docno"] = data["docno"].astype("str")
-        self._indexer = self._indexer.index(data.to_dict(orient="records"))
-        self._searcher = pt.BatchRetrieve(
-            self._indexer, num_results=100, **self.searcher_kwargs
-        )
-        self._searcher = (
-            pt.rewrite.tokenise(lambda x: x, matchop=True) >> self._searcher
-        )
-
-    def batch_search(self, queries, k: int = 10) -> BatchSearchResult:
-        self._searcher[1].controls["end"] = str(k - 1)
-
-        queries.reset_index(inplace=True, drop=True)
-        queries = queries.to_frame("query")
-        queries.index.names = ["qid"]
-        queries = queries.reset_index()
-        queries["qid"] = queries["qid"].astype("str")
-        results = self._searcher.transform(queries)
-
-        scores, indices = [], []
-        lst_qid = -1
-        for r in results.itertuples():
-            if r.qid != lst_qid:
-                scores.append([])
-                indices.append([])
-
-            lst_qid = r.qid
-            scores[-1].append(r.score)
-            indices[-1].append(r.docid)
-
-        return BatchSearchResult(scores, indices)
 
 
 class LuceneIndexer(Indexer):

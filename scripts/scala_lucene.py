@@ -11,7 +11,7 @@ from py_stringmatching.tokenizer.whitespace_tokenizer import WhitespaceTokenizer
 
 sys.path.append(str(Path(__file__).parents[1]))
 
-from src.baselines.terrier_join import terrier_join
+from src.baselines.lucene_join import lucene_join
 
 
 def main():
@@ -41,7 +41,7 @@ def main():
                 QgramTokenizer(qval=6).tokenize,
             ]
             for tokenizer in tokenizers:
-                terrier_join(data_dir=d, size=str(i), tokenizer=tokenizer)
+                lucene_join(data_dir=d, size=str(i), tokenizer=tokenizer)
 
 
 if __name__ == "__main__":

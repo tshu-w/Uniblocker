@@ -4,29 +4,30 @@ pytorch-lightning[extra] >= 1.9.0
 jsonargparse[signatures] # for CLI
 
 transformers >= 4.25.0
+faiss-gpu
 
 scikit-learn
-pyjnius
 pytorch-metric-learning
 py_stringmatching
+
 nlpaug
-# required by nlpaug
 nltk
 gensim
 
-codetiming
-faiss-cpu
-python-terrier
-pyserini
-
-# required by DeepBlocker
+### required by other baselines and benchmarking
+# DeepBlocker
 fasttext
 torchtext
+# BlockingWorkflows
+pyjnius
+# Lucene
+pyserini
+# Timing
+codetiming
 
-# dev tools
+### dev tools
 shtab
 jupyterlab
-ipywidgets
 seaborn
 ray[tune]
 wandb
