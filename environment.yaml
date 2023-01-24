@@ -1,4 +1,4 @@
-name: blocking
+name: uniblocker
 channels:
   - defaults
   - conda-forge

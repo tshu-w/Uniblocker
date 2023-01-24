@@ -11,7 +11,7 @@ exclude = [
     "**/.*",
     "src/vendor",
 ]
-venv = "blocking"
+venv = "uniblocker"
 typeCheckingMode = "off"
 useLibraryCodeForTypes = false
 
