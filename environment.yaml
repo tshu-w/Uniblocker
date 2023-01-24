@@ -1,3 +1,4 @@
+name: blocking
 channels:
   - defaults
   - conda-forge
