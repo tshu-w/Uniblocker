@@ -123,15 +123,15 @@ class FaissIndexer(Indexer):
         index_factory: str = "Flat",
         nprobe: int = 1,
         metric_type: Optional[int] = None,
-        device_id: int = -1,
-        threads: int = -1,
+        device_id: Optional[int] = None,
+        threads: Optional[int] = None,
     ):
         super().__init__()
         self.index_factory = index_factory
         self.nprobe = nprobe
         self.metric_type = metric_type
         self.device_id = device_id
-        if threads != -1:
+        if threads is not None:
             faiss.omp_set_num_threads(threads)
 
     def build_index(
@@ -148,7 +148,7 @@ class FaissIndexer(Indexer):
                 size, self.index_factory, self.metric_type
             )
 
-        if self.device_id != -1:
+        if self.device_id is not None:
             res = faiss.StandardGpuResources()
             self._indexer = faiss.index_cpu_to_gpu(res, self.device_id, self._indexer)
 
