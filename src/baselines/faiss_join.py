@@ -18,6 +18,7 @@ def faiss_join(
     index_col: str = "id",
     n_neighbors: int = 100,
     device_id: int = 0,
+    threads: int = 12,
 ):
     table_paths = sorted(Path(data_dir).glob(f"[1-2]*{size}.csv"))
     dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
@@ -32,7 +33,7 @@ def faiss_join(
 
     converter = NeuralConverter(model, collate_fn, device_id)
     indexer = FaissIndexer(
-        index_factory=index_factory, nprobe=nprobe, device_id=device_id
+        index_factory=index_factory, nprobe=nprobe, device_id=device_id, threads=threads
     )
     blocker = NNSBlocker(dfs, converter, indexer)
     candidates = blocker(k=n_neighbors)

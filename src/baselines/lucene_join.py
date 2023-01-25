@@ -22,6 +22,7 @@ def lucene_join(
     index_col: str = "id",
     tokenizer: Optional[Callable] = None,
     n_neighbors: int = 100,
+    threads: int = 12,
 ):
     table_paths = sorted(Path(data_dir).glob(f"[1-2]*{size}.csv"))
     dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
@@ -31,7 +32,11 @@ def lucene_join(
 
     with tempfile.TemporaryDirectory() as tmpdir:
         converter = SparseConverter(tokenizer)
-        indexer = LuceneIndexer(save_dir=tmpdir)
+        indexer = LuceneIndexer(
+            save_dir=tmpdir,
+            threads=threads,
+            index_argv="--keepStopwords --stemmer none --pretokenized",
+        )
         blocker = NNSBlocker(dfs, converter, indexer)
         candidates = blocker(k=n_neighbors)
 

@@ -12,6 +12,12 @@ from pyserini.analysis import JWhiteSpaceAnalyzer
 from pyserini.search import LuceneSearcher
 from sklearn.neighbors import NearestNeighbors
 
+# should left after pyserini import
+from jnius import autoclass  # isort: skip
+
+BooleanQuery = autoclass("org.apache.lucene.search.BooleanQuery")
+BooleanQuery.setMaxClauseCount(2147483647)
+
 
 class SearchResult(NamedTuple):
     scores: list[float]
@@ -62,9 +68,11 @@ class LuceneIndexer(Indexer):
     def __init__(
         self,
         save_dir: str,
+        threads: Optional[int] = None,
         index_argv: str = "--keepStopwords --stemmer none --pretokenized",
     ):
         self.save_dir = Path(save_dir)
+        self.threads = threads if threads is not None else 1
         self.index_argv = index_argv
 
     def build_index(self, data):
@@ -84,7 +92,7 @@ class LuceneIndexer(Indexer):
                 ["--collection", "JsonCollection"],
                 ["--input", str(self.save_dir)],
                 ["--index", str(index_dir)],
-                ["--threads", "1"],
+                ["--threads", str(self.threads)],
                 shlex.split(self.index_argv),
             )
         )
@@ -99,8 +107,10 @@ class LuceneIndexer(Indexer):
     def batch_search(self, queries, k: int = 10) -> BatchSearchResult:
         queries = queries.apply(" ".join).to_list()
         query_ids = list(map(str, range(len(queries))))
-        results = self._searcher.batch_search(queries, query_ids, k=k)
-        values = [results[str(i)] for i in range(len(queries))]
+        results = self._searcher.batch_search(
+            queries, query_ids, k=k, threads=self.threads
+        )
+        values = [results.get(str(i), []) for i in range(len(queries))]
         scores = [[r.score for r in rl] for rl in values]
         indices = [[int(r.docid) for r in rl] for rl in values]
         return BatchSearchResult(scores, indices)
@@ -114,12 +124,15 @@ class FaissIndexer(Indexer):
         nprobe: int = 1,
         metric_type: Optional[int] = None,
         device_id: int = -1,
+        threads: int = -1,
     ):
         super().__init__()
         self.index_factory = index_factory
         self.nprobe = nprobe
         self.metric_type = metric_type
         self.device_id = device_id
+        if threads != -1:
+            faiss.omp_set_num_threads(threads)
 
     def build_index(
         self,

@@ -15,12 +15,13 @@ def sparse_join(
     index_col: str = "id",
     tokenizer: Optional[Callable] = None,
     n_neighbors: int = 100,
+    threads: int = 12,
 ):
     table_paths = sorted(Path(data_dir).glob(f"[1-2]*{size}.csv"))
     dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
 
     converter = CountVectorizerConverter(dfs[-1], tokenizer)
-    indexer = SklearnIndexer(metric="cosine")
+    indexer = SklearnIndexer(metric="cosine", n_jobs=threads)
     blocker = NNSBlocker(dfs, converter, indexer)
     candidates = blocker(k=n_neighbors)
 
