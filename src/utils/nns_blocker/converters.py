@@ -30,7 +30,7 @@ class CountVectorizerConverter(Converter):
     ):
         self.vectorizer = CountVectorizer(
             tokenizer=tokenizer,
-            analyzer="word" if tokenizer else "char_wb",
+            analyzer="word" if tokenizer else "char",
             ngram_range=(1, 1) if tokenizer else (5, 5),
             binary=binary,
         )
