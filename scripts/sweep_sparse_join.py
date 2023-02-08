@@ -47,14 +47,21 @@ def sweep_sparse_join(
         if d.name not in ["songs", "citeseer-dblp"]
     ]
 
-    # import re
-    # from transformers import AutoTokenizer
-    # from py_stringmatching.tokenizer.whitespace_tokenizer import WhitespaceTokenizer
-    # tokenizers = [
-    #     re.compile(r"(?u)\b\w\w+\b").findall,
-    #     WhitespaceTokenizer().tokenize,
-    #     AutoTokenizer.from_pretrained("./models/roberta-base").tokenize,
-    # ]
+    # isort: off
+    import re
+    import numpy
+    from transformers import AutoTokenizer
+
+    numpy.int, numpy.float = int, float
+    from py_stringmatching.tokenizer.qgram_tokenizer import QgramTokenizer
+    from py_stringmatching.tokenizer.whitespace_tokenizer import WhitespaceTokenizer
+
+    tokenizers = [
+        re.compile(r"(?u)\b\w\w+\b").findall,
+        WhitespaceTokenizer().tokenize,
+        QgramTokenizer(qval=5).tokenize,
+        AutoTokenizer.from_pretrained("./models/roberta-base").tokenize,
+    ]
 
     param_space = {
         "data_dir": tune.grid_search(data_dirs),
