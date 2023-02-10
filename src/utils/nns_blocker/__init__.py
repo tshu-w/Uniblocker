@@ -1,13 +1,12 @@
-from .converters import CountVectorizerConverter, NeuralConverter, SparseConverter
-from .indexers import FaissIndexer, LuceneIndexer, SklearnIndexer
+from .converters import CountVectorizerConverter, NeuralConverter
+from .indexers import FaissIndexer, NMSLIBIndexer, SklearnIndexer
 from .nns_blocker import NNSBlocker
 
 __all__ = [
     "NNSBlocker",
     "CountVectorizerConverter",
     "NeuralConverter",
-    "SparseConverter",
     "FaissIndexer",
+    "NMSLIBIndexer",
     "SklearnIndexer",
-    "LuceneIndexer",
 ]

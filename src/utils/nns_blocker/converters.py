@@ -54,29 +54,6 @@ class CountVectorizerConverter(Converter):
         return s
 
 
-class SparseConverter(Converter):
-    def __init__(
-        self,
-        tokenizer: Callable,
-    ):
-        self.tokenizer = tokenizer
-        self.is_qgram_tokenizer = (
-            hasattr(tokenizer, "__self__")
-            and tokenizer.__self__.__class__.__name__ == "QgramTokenizer"
-        )
-
-    def __call__(self, df: pd.DataFrame):
-        def tokenize_row(row):
-            s = " ".join(row).lower()
-            if self.is_qgram_tokenizer:
-                # replace space with special character like BPE tokenizer
-                s = s.replace(" ", "Ġ")
-            return self.tokenizer(s)
-
-        df = df.fillna("").astype(str)
-        return df.apply(tokenize_row, axis=1)
-
-
 class NeuralConverter(Converter):
     def __init__(
         self, model: nn.Module, collate_fn: Callable, device: Union[str, int] = "cpu"

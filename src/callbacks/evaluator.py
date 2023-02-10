@@ -34,7 +34,13 @@ class Evaluator(Callback):
         dfs = [ds.df for ds in datamodule.datasets]
         collate_fn = getattr(module, "collate_fn", default_collate)
         converter = NeuralConverter(module, collate_fn, module.device)
-        indexer = FaissIndexer()
+        indexer = FaissIndexer(
+            index_params={
+                "save_on_disk": False,
+                "min_nearest_neighbors_to_retrieve": self.n_neighbors,
+                "index_key": "Flat",
+            },
+        )
         blocker = NNSBlocker(dfs, converter, indexer)
         candidates = blocker(k=self.n_neighbors)
 

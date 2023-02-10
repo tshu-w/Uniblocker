@@ -1,44 +1,40 @@
-import tempfile
 from pathlib import Path
 from typing import Callable, Optional
 
-import numpy as np
+import nmslib
 import pandas as pd
 from jsonargparse import CLI
 from rich import print
 
-# https://github.com/anhaidgroup/py_stringmatching/issues/80
-np.int = int
-np.float = float
-from py_stringmatching.tokenizer.whitespace_tokenizer import WhitespaceTokenizer
-
 from src.utils import evaluate
-from src.utils.nns_blocker import LuceneIndexer, NNSBlocker, SparseConverter
+from src.utils.nns_blocker import CountVectorizerConverter, NMSLIBIndexer, NNSBlocker
 
 
-def lucene_join(
+def nmslib_join(
     data_dir: str = "./data/blocking/cora",
     size: str = "",
     index_col: str = "id",
     tokenizer: Optional[Callable] = None,
     n_neighbors: int = 100,
+    M: int = 30,
+    efC: int = 1000,
     threads: int = 12,
 ):
     table_paths = sorted(Path(data_dir).glob(f"[1-2]*{size}.csv"))
     dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
 
-    if tokenizer is None:
-        tokenizer = WhitespaceTokenizer().tokenize
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        converter = SparseConverter(tokenizer)
-        indexer = LuceneIndexer(
-            save_dir=tmpdir,
-            threads=threads,
-            index_argv="--keepStopwords --stemmer none --pretokenized",
-        )
-        blocker = NNSBlocker(dfs, converter, indexer)
-        candidates = blocker(k=n_neighbors)
+    converter = CountVectorizerConverter(dfs[-1], tokenizer)
+    indexer = NMSLIBIndexer(
+        init_kwargs={
+            "method": "hnsw",
+            "space": "cosinesimil_sparse",
+            "data_type": nmslib.DataType.SPARSE_VECTOR,
+        },
+        index_params={"M": M, "indexThreadQty": threads, "efConstruction": efC},
+        threads=threads,
+    )
+    blocker = NNSBlocker(dfs, converter, indexer)
+    candidates = blocker(k=n_neighbors)
 
     if size != "":
         # shortcut for scalability experiments
@@ -53,4 +49,4 @@ def lucene_join(
 
 
 if __name__ == "__main__":
-    CLI(lucene_join)
+    CLI(nmslib_join)

@@ -1,4 +1,3 @@
-from math import sqrt
 from pathlib import Path
 
 import pandas as pd
@@ -26,14 +25,14 @@ def faiss_join(
     collate_fn = getattr(model, "collate_fn", default_collate)
     model = model.to(device_id)
 
-    # https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index
-    nlist = int(4 * sqrt(len(dfs[-1])))
-    index_factory = f"IVF{nlist},Flat"
-    nprobe = min(100, nlist)
-
     converter = NeuralConverter(model, collate_fn, device_id)
     indexer = FaissIndexer(
-        index_factory=index_factory, nprobe=nprobe, device_id=device_id, threads=threads
+        index_params={
+            "save_on_disk": False,
+            "min_nearest_neighbors_to_retrieve": n_neighbors,
+        },
+        device_id=device_id,
+        threads=threads,
     )
     blocker = NNSBlocker(dfs, converter, indexer)
     candidates = blocker(k=n_neighbors)
