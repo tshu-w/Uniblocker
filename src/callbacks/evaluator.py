@@ -39,6 +39,7 @@ class Evaluator(Callback):
                 "save_on_disk": False,
                 "min_nearest_neighbors_to_retrieve": self.n_neighbors,
                 "index_key": "Flat",
+                "verbose": 30,  # logging.WARNING
             },
         )
         blocker = NNSBlocker(dfs, converter, indexer)
