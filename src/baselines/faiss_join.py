@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 import torch.nn as nn
@@ -16,7 +17,7 @@ def faiss_join(
     size: str = "",
     index_col: str = "id",
     n_neighbors: int = 100,
-    device_id: int = 0,
+    device_id: Optional[int] = 0,
     threads: int = 12,
 ):
     table_paths = sorted(Path(data_dir).glob(f"[1-2]*{size}.csv"))
@@ -31,7 +32,7 @@ def faiss_join(
             "save_on_disk": False,
             "min_nearest_neighbors_to_retrieve": n_neighbors,
         },
-        device_id=device_id,
+        # device_id=device_id,
         threads=threads,
     )
     blocker = NNSBlocker(dfs, converter, indexer)

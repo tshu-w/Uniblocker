@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Optional, Union
+from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
@@ -56,11 +56,14 @@ class CountVectorizerConverter(Converter):
 
 class NeuralConverter(Converter):
     def __init__(
-        self, model: nn.Module, collate_fn: Callable, device: Union[str, int] = "cpu"
+        self,
+        model: nn.Module,
+        collate_fn: Callable,
+        device: Optional[int] = None,
     ):
         self.model = model
         self.collate_fn = collate_fn
-        self.device = device
+        self.device = device if device is not None else "cpu"
 
     @torch.no_grad()
     def __call__(self, df: pd.DataFrame, batch_size: int = 512):
