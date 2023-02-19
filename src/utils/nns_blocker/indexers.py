@@ -85,13 +85,10 @@ class FaissIndexer(Indexer):
         *,
         index_params: dict,
         device_id: Optional[int] = None,
-        threads: Optional[int] = None,
     ):
         super().__init__()
         self.index_params = index_params
         self.device_id = device_id
-        if threads is not None:
-            faiss.omp_set_num_threads(threads)
 
     def build_index(
         self,
