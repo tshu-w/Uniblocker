@@ -31,6 +31,7 @@ def nmslib_join(
             "data_type": nmslib.DataType.SPARSE_VECTOR,
         },
         index_params={"M": M, "indexThreadQty": threads, "efConstruction": efC},
+        query_params={},
         threads=threads,
     )
     blocker = NNSBlocker(dfs, converter, indexer)
