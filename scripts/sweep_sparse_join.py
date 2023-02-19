@@ -53,13 +53,12 @@ def sweep_sparse_join(
     from transformers import AutoTokenizer
 
     numpy.int, numpy.float = int, float
-    from py_stringmatching.tokenizer.qgram_tokenizer import QgramTokenizer
     from py_stringmatching.tokenizer.whitespace_tokenizer import WhitespaceTokenizer
 
     tokenizers = [
+        None,
         re.compile(r"(?u)\b\w\w+\b").findall,
         WhitespaceTokenizer().tokenize,
-        QgramTokenizer(qval=5).tokenize,
         AutoTokenizer.from_pretrained("./models/roberta-base").tokenize,
     ]
 

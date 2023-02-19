@@ -30,28 +30,18 @@ class CountVectorizerConverter(Converter):
     ):
         self.vectorizer = CountVectorizer(
             tokenizer=tokenizer,
+            analyzer="word" if tokenizer else "char_wb",
+            ngram_range=(1, 1) if tokenizer else (5, 5),
             binary=binary,
         )
-
-        self.is_qgram_tokenizer = (
-            hasattr(tokenizer, "__self__")
-            and tokenizer.__self__.__class__.__name__ == "QgramTokenizer"
-        )
         df = df.fillna("").astype(str)
-        corpus = df.apply(self.preprocess, axis=1).to_list()
+        corpus = df.apply(lambda row: " ".join(row).lower(), axis=1).to_list()
         self.vectorizer.fit_transform(corpus)
 
     def __call__(self, df: pd.DataFrame):
         df = df.fillna("").astype(str)
-        corpus = df.apply(self.preprocess, axis=1).to_list()
+        corpus = df.apply(lambda row: " ".join(row).lower(), axis=1).to_list()
         return self.vectorizer.transform(corpus)
-
-    def preprocess(self, row):
-        s = " ".join(row).lower()
-        if self.is_qgram_tokenizer:
-            # replace space with special character like BPE tokenizer
-            s = s.replace(" ", "Ġ")
-        return s
 
 
 class NeuralConverter(Converter):
