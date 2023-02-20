@@ -34,6 +34,19 @@ class Evaluator(Callback):
         dfs = [ds.df for ds in datamodule.datasets]
         collate_fn = getattr(module, "collate_fn", default_collate)
         converter = NeuralConverter(module, collate_fn, module.device)
+
+        # import nmslib
+        # from src.utils.nns_blocker import NMSLIBIndexer
+        # indexer = NMSLIBIndexer(
+        #     init_kwargs={
+        #         "method": "hnsw",
+        #         "space": "cosinesimil",
+        #         "data_type": nmslib.DataType.DENSE_VECTOR,
+        #     },
+        #     index_params={"M": 30, "indexThreadQty": 12, "efConstruction": 1000},
+        #     query_params={},
+        #     threads=12,
+        # )
         indexer = FaissIndexer(
             index_params={
                 "save_on_disk": False,
