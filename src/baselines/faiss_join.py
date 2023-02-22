@@ -32,8 +32,9 @@ def faiss_join(
             "save_on_disk": False,
             "min_nearest_neighbors_to_retrieve": n_neighbors,
             "nb_cores": threads,
+            "should_be_memory_mappable": True,
         },
-        # device_id=device_id,
+        device_id=device_id,
     )
     blocker = NNSBlocker(dfs, converter, indexer)
     candidates = blocker(k=n_neighbors)
