@@ -20,7 +20,7 @@ torchtext
 # BlockingWorkflows
 pyjnius
 # Faiss
-autofaiss
+faiss-gpu
 # NMSLIB
 nmslib
 # Timing

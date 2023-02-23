@@ -47,14 +47,7 @@ class Evaluator(Callback):
         #     query_params={},
         #     threads=12,
         # )
-        indexer = FaissIndexer(
-            index_params={
-                "save_on_disk": False,
-                "min_nearest_neighbors_to_retrieve": self.n_neighbors,
-                "index_key": "Flat",
-                "verbose": 30,  # logging.WARNING
-            },
-        )
+        indexer = FaissIndexer(index_factory="Flat")
         blocker = NNSBlocker(dfs, converter, indexer)
         candidates = blocker(k=self.n_neighbors)
 

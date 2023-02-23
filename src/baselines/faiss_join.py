@@ -27,15 +27,7 @@ def faiss_join(
     model = model.to(device_id)
 
     converter = NeuralConverter(model, collate_fn, device_id)
-    indexer = FaissIndexer(
-        index_params={
-            "save_on_disk": False,
-            "min_nearest_neighbors_to_retrieve": n_neighbors,
-            "nb_cores": threads,
-            "should_be_memory_mappable": True,
-        },
-        device_id=device_id,
-    )
+    indexer = FaissIndexer(device_id=device_id, threads=threads)
     blocker = NNSBlocker(dfs, converter, indexer)
     candidates = blocker(k=n_neighbors)
 
