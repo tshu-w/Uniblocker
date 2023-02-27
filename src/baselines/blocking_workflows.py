@@ -1,6 +1,10 @@
 from pathlib import Path
 from typing import Literal
 
+import jnius_config
+
+jnius_config.add_options("-Xms50000m", "-Xmx50000m")
+
 from jnius import autoclass
 from jsonargparse import CLI
 from rich import print
@@ -94,6 +98,10 @@ def get_blocks_stats(
     return {
         "PC": blocks_stats.getPc(),
         "PQ": blocks_stats.getPq(),
+        "DD": blocks_stats.getDetectedDuplicates(),
+        "AC": int(blocks_stats.getAggregateCardinality()),
+        "RR": blocks_stats.getDetectedDuplicates()
+        / blocks_stats.getAggregateCardinality(),
         "F1": blocks_stats.getFMeasure(),
     }
 
