@@ -1,0 +1,7 @@
+data:
+  class_path: src.datamodules.Blocking
+  init_args:
+    data_dir: ./data/blocking/cora
+    batch_size: 256
+    num_workers: 0
+    pin_memory: true

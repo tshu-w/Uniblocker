@@ -1,0 +1,24 @@
+trainer:
+  max_steps: 10000
+  check_val_every_n_epoch: null
+  num_sanity_val_steps: 0
+  val_check_interval: 100
+  callbacks+:
+    - class_path: OnlineEvaluator
+      init_args:
+        data_dir: data/blocking/walmart-amazon_homo
+    - class_path: ModelCheckpoint
+      init_args:
+        monitor: val/AP
+        filename: step={step}-AP={val/AP:.5f}
+        auto_insert_metric_name: false
+        mode: max
+        save_top_k: 5
+data:
+  class_path: src.datamodules.GitTables
+  init_args:
+    data_dir: ./data/gittables/raw_4943312
+    data_files: null
+    batch_size: 128
+    num_workers: 0
+    pin_memory: true

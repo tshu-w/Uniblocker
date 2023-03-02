@@ -1,0 +1,3 @@
+trainer:
+  devices: 2
+  strategy: ddp_find_unused_parameters_false

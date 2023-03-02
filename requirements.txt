@@ -1,0 +1,34 @@
+--find-links https://download.pytorch.org/whl/cu113/torch_stable.html
+torch >= 1.12.0
+pytorch-lightning[extra] >= 1.9.0
+jsonargparse[signatures] # for CLI
+
+transformers >= 4.25.0
+
+scikit-learn
+pytorch-metric-learning
+py_stringmatching
+
+nlpaug
+nltk
+gensim
+
+### required by other baselines and benchmarking
+# DeepBlocker
+fasttext
+torchtext
+# BlockingWorkflows
+pyjnius
+# Faiss
+faiss-gpu
+# NMSLIB
+nmslib
+# Timing
+codetiming
+
+### dev tools
+shtab
+jupyterlab
+seaborn
+ray[tune]
+wandb
