@@ -59,7 +59,7 @@ def sweep_sparse_join(
         None,
         re.compile(r"(?u)\b\w\w+\b").findall,
         WhitespaceTokenizer().tokenize,
-        AutoTokenizer.from_pretrained("./models/roberta-base").tokenize,
+        AutoTokenizer.from_pretrained("roberta-base").tokenize,
     ]
 
     param_space = {

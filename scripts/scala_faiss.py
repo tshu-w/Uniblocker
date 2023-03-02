@@ -23,7 +23,7 @@ def main():
     #             sub_df.to_csv(sub_f, index=False)
 
     model = UniBlocker(
-        model_name_or_path="models/roberta-base",
+        model_name_or_path="roberta-base",
         max_length=256,
     )
     for d in data_dirs:

@@ -21,12 +21,12 @@ class Augmenter(Callable):
         # naw.WordEmbsAug(model_type="fasttext", model=nlpaug.model.word_embs.Fasttext()),
         # naw.ContextualWordEmbsAug(
         #     model_type="roberta",
-        #     model_path="./models/roberta-base",
+        #     model_path="roberta-base",
         #     action="insert",
         # ),
         # naw.ContextualWordEmbsAug(
         #     model_type="roberta",
-        #     model_path="./models/roberta-base",
+        #     model_path="roberta-base",
         #     action="substitute",
         # ),
         naw.SynonymAug(aug_src="wordnet"),
