@@ -16,6 +16,7 @@ Source code and data for the paper: **Towards Universal Dense Blocking for Entit
 First, install the dependencies and download the resources.
 ```console
 # clone project
+git lfs install
 git clone https://github.com/tshu-w/uniblocker # It will take a while for LFS to download the benchmark data
 cd uniblocker
 unzip data/blocking.zip -d data
