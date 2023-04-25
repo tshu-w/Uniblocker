@@ -5,6 +5,7 @@ sys.path.append(str(Path(__file__).parents[1]))
 
 import pandas as pd
 
+
 def main():
     data_dirs = [
         d

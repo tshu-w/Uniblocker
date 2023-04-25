@@ -2,7 +2,9 @@ import os
 import sys
 from pathlib import Path
 
-os.environ["CLASSPATH"] = f"{str(Path(__file__).parents[1])}/src/vendor/jedai-core-3.2.1-jar-with-dependencies.jar"
+os.environ[
+    "CLASSPATH"
+] = f"{str(Path(__file__).parents[1])}/src/vendor/jedai-core-3.2.1-jar-with-dependencies.jar"
 sys.path.append(str(Path(__file__).parents[1]))
 
 from src.baselines.blocking_workflows import blocking_workflows

@@ -1,5 +1,4 @@
-import pytorch_lightning as pl
-from pytorch_lightning import Callback
+import lightning.pytorch as pl
 from torch.utils.data import DataLoader, IterableDataset
 from torch.utils.data.dataloader import default_collate
 
@@ -20,7 +19,7 @@ def empty_dataloader(*args, **kwargs):
     return DataLoader(EmptyIterDataset())
 
 
-class Evaluator(Callback):
+class Evaluator(pl.Callback):
     def __init__(
         self,
         n_neighbors: int = 100,

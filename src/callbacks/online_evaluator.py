@@ -1,12 +1,11 @@
 from typing import Optional
 
-import pytorch_lightning as pl
-from pytorch_lightning import Callback
+import lightning.pytorch as pl
 
 from src.datamodules.blocking import Blocking
 
 
-class OnlineEvaluator(Callback):
+class OnlineEvaluator(pl.Callback):
     def __init__(
         self,
         data_dir: str = "data/blocking/census",

@@ -1,15 +1,15 @@
 from typing import Any, Optional
 
+import lightning.pytorch as pl
 import torch
-from pytorch_lightning import LightningModule
-from pytorch_lightning.utilities.types import STEP_OUTPUT
+from lightning.pytorch.utilities.types import STEP_OUTPUT
 from transformers import AutoConfig, AutoModel, AutoTokenizer, get_scheduler
 
 from src.models.modules import MLP, NTXentLoss
 from src.utils.collators import TransformerCollator
 
 
-class SimCLR(LightningModule):
+class SimCLR(pl.LightningModule):
     def __init__(
         self,
         model_name_or_path: str,

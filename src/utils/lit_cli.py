@@ -1,7 +1,7 @@
 import os
 from typing import Iterable
 
-from pytorch_lightning.cli import LightningCLI
+from lightning.pytorch.cli import LightningCLI
 
 from src.callbacks.evaluator import empty_dataloader, empty_fun
 

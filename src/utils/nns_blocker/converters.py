@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pytorch_lightning.utilities import move_data_to_device
+from lightning.pytorch.utilities import move_data_to_device
 from sklearn.feature_extraction.text import CountVectorizer
 from tqdm import tqdm
 

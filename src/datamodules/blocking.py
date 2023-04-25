@@ -3,9 +3,9 @@ import warnings
 from pathlib import Path
 from typing import Optional
 
+import lightning.pytorch as pl
 import pandas as pd
-from pytorch_lightning import LightningDataModule
-from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
+from lightning.pytorch.utilities.types import TRAIN_DATALOADERS
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from src.models import DeepBlocker
@@ -44,7 +44,7 @@ class TableDataset(Dataset):
         return self.df.iloc[index].to_dict()
 
 
-class Blocking(LightningDataModule):
+class Blocking(pl.LightningDataModule):
     def __init__(
         self,
         data_dir: str = "./data/blocking/walmart-amazon_heter",
@@ -91,7 +91,7 @@ class Blocking(LightningDataModule):
         return SequentialLoader(*dataloaders)
 
 
-class Blockings(LightningDataModule):
+class Blockings(pl.LightningDataModule):
     def __init__(
         self,
         data_dir: str = "./data/blocking",

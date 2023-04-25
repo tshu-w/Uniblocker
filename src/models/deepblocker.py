@@ -2,11 +2,11 @@ from pathlib import Path
 from typing import Union
 
 import fasttext
+import lightning.pytorch as pl
 import torch
 import torch.nn.functional as F
 from jsonargparse import lazy_instance
-from pytorch_lightning import LightningModule
-from pytorch_lightning.utilities.types import STEP_OUTPUT
+from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch import nn
 from torchtext.data import get_tokenizer
 
@@ -15,7 +15,7 @@ from src.models.modules.aggregators import AGGREGATOR_TYPE, get_aggregator
 fasttext.FastText.eprint = lambda *args, **kwargs: None
 
 
-class DeepBlocker(LightningModule):
+class DeepBlocker(pl.LightningModule):
     def __init__(
         self,
         tokenizer: str = "basic_english",
