@@ -1,17 +1,21 @@
 description: universal-blocker
 
 environment:
-  image: docker.cipsup.cn/wangtianshu/universal-blocker
+  image: docker.cipsup.cn/wangtianshu/uniblocker
   force_pull_image: true
+  environment_variables:
+    - DET_SKIP_PIP_INSTALL=true
 
 bind_mounts:
-  - host_path: /shared_home/wangtianshu/data
+  - host_path: /ceph_home/tianshu2020/data
     container_path: /run/determined/workdir/data
-  - host_path: /shared_home/wangtianshu/models
+  - host_path: /ceph_home/tianshu2020/models
     container_path: /run/determined/workdir/models
-  - host_path: /shared_home/wangtianshu/results
+  - host_path: /ceph_home/tianshu2020/results
     container_path: /run/determined/workdir/results
+  - host_path: /ceph_home/tianshu2020
+    container_path: /run/determined/workdir/ceph_home
 
 resources:
   slots: 1
-  resource_pool: A100-80G
+  resource_pool: TITAN-24G
