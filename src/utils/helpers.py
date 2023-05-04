@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Iterator
+from typing import Any, Iterable, Iterator, Literal
 
 from sklearn.metrics import auc
 
@@ -10,8 +10,13 @@ def chunks(lst: Iterable, n: int) -> Iterator[Iterable]:
         yield lst[i : i + n]
 
 
-def record2str(record: dict) -> str:
-    return " ".join(str(v).casefold() for v in record.values() if v)
+def serialize(record: dict, *, mode: Literal["bare", "full"] = "bare") -> str:
+    if mode == "bare":
+        return " ".join(str(v).casefold() for v in record.values() if v)
+    elif mode == "full":
+        return " ".join(f"[COL] {k} [VAL] {v}" for k, v in record.items())
+    else:
+        raise ValueError(f"Unknown mode: {mode}")
 
 
 def evaluate(

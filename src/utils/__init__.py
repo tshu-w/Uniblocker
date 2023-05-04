@@ -1,3 +1,3 @@
-from .helpers import chunks, evaluate, record2str
+from .helpers import chunks, evaluate
 
-__all__ = ["chunks", "evaluate", "record2str"]
+__all__ = ["chunks", "evaluate"]

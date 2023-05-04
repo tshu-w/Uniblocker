@@ -1,6 +1,7 @@
 from dataclasses import dataclass
+from functools import partial
 from itertools import product, starmap
-from typing import Optional
+from typing import Literal, Optional
 
 import numpy as np
 
@@ -12,19 +13,21 @@ import torch
 from transformers import DataCollatorForLanguageModeling, PreTrainedTokenizer
 
 from .augment import Augmenter
-from .helpers import record2str
+from .helpers import serialize
 
 
 @dataclass
 class TransformerCollator:
     tokenizer: PreTrainedTokenizer
     max_length: Optional[int] = None
+    serialize_mode: Literal["bare", "full"] = "bare"
 
     def __call__(
         self,
         batch: list[dict],
     ) -> dict[str, any]:
-        texts = list(map(record2str, batch))
+        _serialize = partial(serialize, mode=self.serialize_mode)
+        texts = list(map(_serialize, batch))
         features = self.tokenizer(
             texts,
             padding="max_length",
@@ -48,7 +51,8 @@ class TransformerCollatorWithAugmenter(TransformerCollator):
             return features
 
         augmented_batch = list(map(self.augmenter, batch))
-        augmented_texts = list(map(record2str, augmented_batch))
+        _serialize = partial(serialize, mode=self.serialize_mode)
+        augmented_texts = list(map(_serialize, augmented_batch))
 
         augmented_features = self.tokenizer(
             augmented_texts,
@@ -91,7 +95,8 @@ class TransformerCollatorWithDistances(TransformerCollatorWithAugmenter):
             return super().__call__(batch)
 
         features = super().__call__(batch)
-        texts = list(map(record2str, batch))
+        _serialize = partial(serialize, mode=self.serialize_mode)
+        texts = list(map(_serialize, batch))
         batch_size = len(texts)
         distances = list(starmap(self.sparse_similarity, product(texts, texts)))
         distances = torch.Tensor(
@@ -121,7 +126,8 @@ class RetroMAECollator(TransformerCollator, DataCollatorForLanguageModeling):
         if not torch.is_grad_enabled():
             return super().__call__(batch)
 
-        texts = list(map(record2str, batch))
+        _serialize = partial(serialize, mode=self.serialize_mode)
+        texts = list(map(_serialize, batch))
         feature = self.tokenizer(
             texts,
             padding="max_length",
