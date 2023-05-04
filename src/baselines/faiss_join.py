@@ -8,7 +8,7 @@ from rich import print
 from torch.utils.data.dataloader import default_collate
 
 from src.utils import evaluate
-from src.utils.nns_blocker import FaissIndexer, NeuralConverter, NNSBlocker
+from src.utils.nnblocker import DenseVectorizer, FaissIndexer, NNBlocker
 
 
 def faiss_join(
@@ -26,9 +26,9 @@ def faiss_join(
     collate_fn = getattr(model, "collate_fn", default_collate)
     model = model.to(device_id)
 
-    converter = NeuralConverter(model, collate_fn, device_id)
+    converter = DenseVectorizer(model, collate_fn, device_id)
     indexer = FaissIndexer(device_id=device_id, threads=threads)
-    blocker = NNSBlocker(dfs, converter, indexer)
+    blocker = NNBlocker(dfs, converter, indexer)
     candidates = blocker(k=n_neighbors)
 
     if size != "":

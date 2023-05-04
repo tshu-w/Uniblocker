@@ -7,7 +7,7 @@ from jsonargparse import CLI
 from rich import print
 
 from src.utils import evaluate
-from src.utils.nns_blocker import CountVectorizerConverter, NMSLIBIndexer, NNSBlocker
+from src.utils.nnblocker import NMSLIBIndexer, NNBlocker, SparseVectorizer
 
 
 def nmslib_join(
@@ -23,7 +23,7 @@ def nmslib_join(
     table_paths = sorted(Path(data_dir).glob(f"[1-2]*{size}.csv"))
     dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
 
-    converter = CountVectorizerConverter(dfs[-1], tokenizer)
+    converter = SparseVectorizer(dfs[-1], vectorizer_kwargs={"tokenizer": tokenizer})
     indexer = NMSLIBIndexer(
         init_kwargs={
             "method": "hnsw",
@@ -34,7 +34,7 @@ def nmslib_join(
         query_params={},
         threads=threads,
     )
-    blocker = NNSBlocker(dfs, converter, indexer)
+    blocker = NNBlocker(dfs, converter, indexer)
     candidates = blocker(k=n_neighbors)
 
     if size != "":

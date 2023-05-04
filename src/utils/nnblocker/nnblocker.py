@@ -8,7 +8,7 @@ from src.utils import chunks
 from .indexers import Indexer
 
 
-class NNSBlocker:
+class NNBlocker:
     def __init__(
         self,
         dfs: list[pd.DataFrame],

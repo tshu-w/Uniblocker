@@ -71,4 +71,4 @@ Details of the constructed benchmark can be found in the README of the data.
 ## TODO
 
 - [ ] Add Benchmark README
-- [ ] Separate [NNSBlocker](https://github.com/tshu-w/uniblocker/tree/main/src/utils/nns_blocker) into a standalone package to facilitate further research on nearest neighbor blocking techniques.
+- [ ] Separate [NNBlocker](https://github.com/tshu-w/uniblocker/tree/main/src/utils/nnblocker) into a standalone package to facilitate further research on nearest neighbor blocking techniques.

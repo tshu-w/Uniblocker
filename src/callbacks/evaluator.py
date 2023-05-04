@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader, IterableDataset
 from torch.utils.data.dataloader import default_collate
 
 from src.utils import evaluate
-from src.utils.nns_blocker import FaissIndexer, NeuralConverter, NNSBlocker
+from src.utils.nnblocker import DenseVectorizer, FaissIndexer, NNBlocker
 
 
 class EmptyIterDataset(IterableDataset):
@@ -32,10 +32,10 @@ class Evaluator(pl.Callback):
 
         dfs = [ds.df for ds in datamodule.datasets]
         collate_fn = getattr(module, "collate_fn", default_collate)
-        converter = NeuralConverter(module, collate_fn, module.device)
+        converter = DenseVectorizer(module, collate_fn, module.device)
 
         # import nmslib
-        # from src.utils.nns_blocker import NMSLIBIndexer
+        # from src.utils.nnblocker import NMSLIBIndexer
         # indexer = NMSLIBIndexer(
         #     init_kwargs={
         #         "method": "hnsw",
@@ -47,7 +47,7 @@ class Evaluator(pl.Callback):
         #     threads=12,
         # )
         indexer = FaissIndexer(index_factory="Flat")
-        blocker = NNSBlocker(dfs, converter, indexer)
+        blocker = NNBlocker(dfs, converter, indexer)
         candidates = blocker(k=self.n_neighbors)
 
         matches = datamodule.matches
