@@ -4,7 +4,7 @@ trainer:
   num_sanity_val_steps: 0
   val_check_interval: 100
   callbacks+:
-    - class_path: OnlineEvaluator
+    - class_path: src.callbacks.OnlineEvaluator
       init_args:
         data_dir: data/blocking/walmart-amazon_homo
     - class_path: ModelCheckpoint

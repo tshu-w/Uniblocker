@@ -2,7 +2,7 @@ seed_everything: 42
 trainer:
   default_root_dir: results
   callbacks:
-    class_path: Metric
+    class_path: src.callbacks.Metric
   logger:
     class_path: WandbLogger
     init_args:
