@@ -8,6 +8,7 @@ transformers
 scikit-learn
 pytorch-metric-learning
 py_stringmatching
+pyarrow
 
 nlpaug
 nltk
