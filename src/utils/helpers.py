@@ -10,9 +10,11 @@ def chunks(lst: Iterable, n: int) -> Iterator[Iterable]:
         yield lst[i : i + n]
 
 
-def serialize(record: dict, *, mode: Literal["bare", "full"] = "bare") -> str:
+def serialize(record: dict, *, mode: Literal["bare", "tagged", "full"] = "bare") -> str:
     if mode == "bare":
         return " ".join(str(v).casefold() for v in record.values() if v)
+    elif mode == "tagged":
+        return " ".join(f"[VAL] {v}" for v in record.values())
     elif mode == "full":
         return " ".join(f"[COL] {k} [VAL] {v}" for k, v in record.items())
     else:

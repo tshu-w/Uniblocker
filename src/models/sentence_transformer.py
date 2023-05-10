@@ -30,7 +30,7 @@ class SentenceTransformer(pl.LightningModule):
         self.collate_fn = TransformerCollator(
             tokenizer=tokenizer,
             max_length=max_length,
-            serialize_mode="full",
+            serialize_mode="tagged",
         )
         config = AutoConfig.from_pretrained(model_name_or_path)
         config.hidden_dropout_prob = hidden_dropout_prob
