@@ -6,10 +6,11 @@ trainer:
 model:
   class_path: src.models.UniBlocker
   init_args:
-    model_name_or_path: roberta-base
+    model_name_or_path: "./models/all-mpnet-base-v2"
     max_length: 256
     augment_prob: 0.01
     hidden_dropout_prob: 0.15
+    pooler_type: average
     m: 0.4
     gamma: 80
     learning_rate: 1.0e-05

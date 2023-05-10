@@ -5,7 +5,7 @@ import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from transformers import AutoConfig, AutoModel, AutoTokenizer, get_scheduler
 
-from src.models.modules import CircleLoss
+from src.models.modules import CircleLoss, Pooler
 from src.utils.augment import Augmenter
 from src.utils.collators import TransformerCollatorWithDistances
 
@@ -17,6 +17,7 @@ class UniBlocker(pl.LightningModule):
         max_length: Optional[int] = None,
         augment_prob: float = 0.1,
         hidden_dropout_prob: float = 0.15,
+        pooler_type: Pooler.valid_types = "cls_with_mlp",
         m: float = 0.4,
         gamma: int = 80,
         learning_rate: float = 2e-5,
@@ -39,11 +40,19 @@ class UniBlocker(pl.LightningModule):
         config = AutoConfig.from_pretrained(model_name_or_path)
         config.hidden_dropout_prob = hidden_dropout_prob
         self.model = AutoModel.from_pretrained(model_name_or_path, config=config)
+        self.pooler = Pooler(pooler_type=pooler_type)
+        self.with_mlp = "mlp" in pooler_type
         self.loss_func = CircleLoss(m=m, gamma=gamma)
         self.distance = distance
 
     def forward(self, inputs) -> Any:
-        return self.model(**inputs).pooler_output
+        outputs = self.model(**inputs)
+        pooled_output = self.pooler(outputs, inputs.attention_mask)
+        if self.with_mlp:
+            pooled_output = self.model.pooler.dense(pooled_output)
+            pooled_output = self.model.pooler.activation(pooled_output)
+
+        return pooled_output
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
         batch, distances = batch
