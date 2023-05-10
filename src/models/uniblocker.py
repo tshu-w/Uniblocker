@@ -55,7 +55,7 @@ class UniBlocker(pl.LightningModule):
         z1, z2 = self.forward(x1), self.forward(x2)
 
         loss = self.loss_func(z1, z2, distances > self.distance)
-        self.log("loss", loss)
+        self.log("loss", loss, prog_bar=True)
 
         return loss
 

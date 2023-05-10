@@ -132,7 +132,7 @@ class RetroMAE(pl.LightningModule):
 
     def training_step(self, batch, batch_idx: int) -> STEP_OUTPUT:
         loss = self.mae(**batch)
-        self.log("loss", loss)
+        self.log("loss", loss, prog_bar=True)
         return loss
 
     def configure_optimizers(self):

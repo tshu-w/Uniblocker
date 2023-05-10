@@ -69,7 +69,7 @@ class Sudowoodo(pl.LightningModule):
         loss_c = self.loss_c(z1, z2)
         loss_b = self.loss_b(z1, z2)
         loss = (1 - self.alpha) * loss_c + self.alpha * loss_b
-        self.log("loss", loss)
+        self.log("loss", loss, prog_bar=True)
 
         return loss
 

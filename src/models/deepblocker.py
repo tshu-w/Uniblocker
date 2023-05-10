@@ -66,7 +66,7 @@ class DeepBlocker(pl.LightningModule):
         x_hat = self.decoder(z)
 
         loss = F.mse_loss(x_hat, x)
-        self.log("loss", loss)
+        self.log("loss", loss, prog_bar=True)
 
         return loss
 

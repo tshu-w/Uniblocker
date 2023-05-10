@@ -60,7 +60,7 @@ class SimCSE(pl.LightningModule):
             z2 = torch.flatten(self.all_gather(z2, sync_grads=True), end_dim=1)
 
         loss = self.loss_func(z1, z2)
-        self.log("loss", loss)
+        self.log("loss", loss, prog_bar=True)
 
         return loss
 
