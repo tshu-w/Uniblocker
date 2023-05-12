@@ -47,21 +47,21 @@ def sweep_sparse_join(
         if d.name not in ["songs", "citeseer-dblp"]
     ]
 
-    # isort: off
-    import re
-    import numpy
-    from transformers import AutoTokenizer
+    # # isort: off
+    # import re
+    # import numpy
+    # from transformers import AutoTokenizer
 
-    numpy.int, numpy.float = int, float
-    from py_stringmatching.tokenizer.whitespace_tokenizer import WhitespaceTokenizer
+    # numpy.int, numpy.float = int, float
+    # from py_stringmatching.tokenizer.whitespace_tokenizer import WhitespaceTokenizer
 
     tokenizers = [
         None,
-        re.compile(r"(?u)\b\w\w+\b").findall,
-        WhitespaceTokenizer().tokenize,
-        AutoTokenizer.from_pretrained("roberta-base").tokenize,
-        AutoTokenizer.from_pretrained("bert-base-uncased").tokenize,
-        AutoTokenizer.from_pretrained("t5-base").tokenize,
+        # re.compile(r"(?u)\b\w\w+\b").findall,
+        # WhitespaceTokenizer().tokenize,
+        # AutoTokenizer.from_pretrained("roberta-base").tokenize,
+        # AutoTokenizer.from_pretrained("bert-base-uncased").tokenize,
+        # AutoTokenizer.from_pretrained("t5-base").tokenize,
     ]
 
     param_space = {

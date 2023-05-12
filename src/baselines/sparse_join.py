@@ -20,7 +20,11 @@ def sparse_join(
     table_paths = sorted(Path(data_dir).glob(f"[1-2]*{size}.csv"))
     dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
 
-    converter = SparseVectorizer(dfs[-1], vectorizer_kwargs={"tokenizer": tokenizer})
+    if tokenizer is None:
+        vectorizer_kwargs = {"analyzer": "char_wb", "ngram_range": (5, 5)}
+    else:
+        vectorizer_kwargs = {"tokenizer": tokenizer}
+    converter = SparseVectorizer(dfs[-1], vectorizer_kwargs=vectorizer_kwargs)
     indexer = SklearnIndexer(init_kwargs={"metric": "cosine", "n_jobs": threads})
     blocker = NNBlocker(dfs, converter, indexer)
     candidates = blocker(k=n_neighbors)
