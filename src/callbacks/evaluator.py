@@ -32,7 +32,7 @@ class Evaluator(pl.Callback):
 
         dfs = [ds.df for ds in datamodule.datasets]
         collate_fn = getattr(module, "collate_fn", default_collate)
-        converter = DenseVectorizer(module, collate_fn, module.device)
+        vectorizer = DenseVectorizer(module, collate_fn, module.device)
 
         # import nmslib
         # from src.utils.nnblocker import NMSLIBIndexer
@@ -47,7 +47,7 @@ class Evaluator(pl.Callback):
         #     threads=12,
         # )
         indexer = FaissIndexer(index_factory="Flat")
-        blocker = NNBlocker(dfs, converter, indexer)
+        blocker = NNBlocker(dfs, vectorizer, indexer)
         candidates = blocker(k=self.n_neighbors)
 
         matches = datamodule.matches

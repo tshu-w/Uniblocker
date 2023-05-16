@@ -12,11 +12,11 @@ class NNBlocker:
     def __init__(
         self,
         dfs: list[pd.DataFrame],
-        converter: Callable,
+        vectorizer: Callable,
         indexer: Indexer,
     ) -> None:
         self.dfs = dfs
-        self.converter = converter
+        self.vectorizer = vectorizer
         self.indexer = indexer
 
     def __call__(
@@ -25,8 +25,8 @@ class NNBlocker:
         k: int = 100,
     ) -> list[set[tuple]]:
         with Timer(text="Convert time: {milliseconds:.0f} ms"):
-            queries = self.converter(self.dfs[0])
-            data = self.converter(self.dfs[-1])
+            queries = self.vectorizer(self.dfs[0])
+            data = self.vectorizer(self.dfs[-1])
         with Timer(text="Index time: {milliseconds:.0f} ms"):
             self.indexer.build_index(data)
 

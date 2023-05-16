@@ -24,9 +24,9 @@ def sparse_join(
         vectorizer_kwargs = {"analyzer": "char_wb", "ngram_range": (5, 5)}
     else:
         vectorizer_kwargs = {"tokenizer": tokenizer}
-    converter = SparseVectorizer(dfs[-1], vectorizer_kwargs=vectorizer_kwargs)
+    vectorizer = SparseVectorizer(dfs[-1], vectorizer_kwargs=vectorizer_kwargs)
     indexer = SklearnIndexer(init_kwargs={"metric": "cosine", "n_jobs": threads})
-    blocker = NNBlocker(dfs, converter, indexer)
+    blocker = NNBlocker(dfs, vectorizer, indexer)
     candidates = blocker(k=n_neighbors)
 
     if size != "":

@@ -26,9 +26,9 @@ def faiss_join(
     collate_fn = getattr(model, "collate_fn", default_collate)
     model = model.to(device_id)
 
-    converter = DenseVectorizer(model, collate_fn, device_id)
+    vectorizer = DenseVectorizer(model, collate_fn, device_id)
     indexer = FaissIndexer(device_id=device_id, threads=threads)
-    blocker = NNBlocker(dfs, converter, indexer)
+    blocker = NNBlocker(dfs, vectorizer, indexer)
     candidates = blocker(k=n_neighbors)
 
     if size != "":

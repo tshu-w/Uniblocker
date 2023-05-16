@@ -23,7 +23,7 @@ def nmslib_join(
     table_paths = sorted(Path(data_dir).glob(f"[1-2]*{size}.csv"))
     dfs = [pd.read_csv(p, index_col=index_col) for p in table_paths]
 
-    converter = SparseVectorizer(dfs[-1], vectorizer_kwargs={"tokenizer": tokenizer})
+    vectorizer = SparseVectorizer(dfs[-1], vectorizer_kwargs={"tokenizer": tokenizer})
     indexer = NMSLIBIndexer(
         init_kwargs={
             "method": "hnsw",
@@ -34,7 +34,7 @@ def nmslib_join(
         query_params={},
         threads=threads,
     )
-    blocker = NNBlocker(dfs, converter, indexer)
+    blocker = NNBlocker(dfs, vectorizer, indexer)
     candidates = blocker(k=n_neighbors)
 
     if size != "":
