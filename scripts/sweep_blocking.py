@@ -61,7 +61,7 @@ def sweep_blocking(
     gpus_per_trial: Union[int, float] = 1,
     seed: list[int] = [123],
     ckpt_paths: list[Optional[str]] = [None],
-    config_files: list[str] = ["configs/simcse.yaml"],
+    config_files: list[str] = ["configs/uniblocker.yaml"],
     data_dirs: list[str] = [],
     batch_sizes: list[int] = [32],
 ):
