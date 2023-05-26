@@ -1,10 +1,11 @@
-description: universal-blocker
+description: UniBlocker
 
 environment:
-  image: docker.cipsup.cn/wangtianshu/uniblocker
+  image: docker.cipsup.cn/wangtianshu/base
   force_pull_image: true
   environment_variables:
     - DET_SKIP_PIP_INSTALL=true
+    - PATH=/home/tianshu2020/.conda/envs/uniblocker/bin:/opt/conda/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 bind_mounts:
   - host_path: /ceph_home/tianshu2020/data
@@ -14,8 +15,9 @@ bind_mounts:
   - host_path: /ceph_home/tianshu2020/results
     container_path: /run/determined/workdir/results
   - host_path: /ceph_home/tianshu2020
-    container_path: /run/determined/workdir/ceph_home
+    container_path: /home/tianshu2020
 
 resources:
   slots: 1
   resource_pool: TITAN-24G
+  shm_size: 16G
