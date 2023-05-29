@@ -20,7 +20,7 @@ from .helpers import serialize
 class TransformerCollator:
     tokenizer: PreTrainedTokenizer
     max_length: Optional[int] = None
-    serialize_mode: Literal["bare", "full"] = "bare"
+    serialize_mode: Literal["bare", "tagged", "full"] = "bare"
 
     def __call__(
         self,
