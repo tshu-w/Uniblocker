@@ -1,3 +1,5 @@
 src/vendor/
-.stfolder/
-.stversions/
+
+/data
+/models
+/results
