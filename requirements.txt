@@ -20,6 +20,8 @@ fasttext
 torchtext
 # BlockingWorkflows
 pyjnius
+# Lucene
+pyserini
 # Faiss
 faiss-gpu
 # NMSLIB

@@ -49,10 +49,7 @@ def sweep_sparse_join(
 
     # # isort: off
     # import re
-    # import numpy
     # from transformers import AutoTokenizer
-
-    # numpy.int, numpy.float = int, float
     # from py_stringmatching.tokenizer.whitespace_tokenizer import WhitespaceTokenizer
 
     tokenizers = [
@@ -72,7 +69,7 @@ def sweep_sparse_join(
     tune_config = tune.TuneConfig()
     run_config = air.RunConfig(
         name="sparse_join",
-        local_dir="results/ray",
+        storage_path="results/ray",
         log_to_file=True,
         verbose=1,
     )
