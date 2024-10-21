@@ -7,5 +7,4 @@ class Vectorizer(ABC):
     """wrapper class for various vectorizers."""
 
     @abstractmethod
-    def __call__(self, df: pd.DataFrame):
-        ...
+    def __call__(self, df: pd.DataFrame): ...

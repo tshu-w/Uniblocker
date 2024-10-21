@@ -5,8 +5,8 @@ from runpy import run_module
 from unittest.mock import patch
 
 from pyserini.analysis import JWhiteSpaceAnalyzer
-from pyserini.search import LuceneSearcher
 from pyserini.pyclass import autoclass
+from pyserini.search import LuceneSearcher
 
 from .indexer import BatchSearchResult, Indexer
 
@@ -19,7 +19,7 @@ class LuceneIndexer(Indexer):
     def __init__(
         self,
         save_dir: str,
-        index_argv: str = ['--keepStopwords', '--stemmer', 'none', '--pretokenized'],
+        index_argv: str = ["--keepStopwords", "--stemmer", "none", "--pretokenized"],
         threads: int = 1,
     ):
         self.save_dir = Path(save_dir)

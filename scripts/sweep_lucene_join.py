@@ -4,9 +4,9 @@ import sys
 from pathlib import Path
 from typing import Callable, Optional
 
+import ray
 import wandb
 from jsonargparse import CLI
-import ray
 from ray import air, tune
 
 sys.path.append(str(Path(__file__).parents[1]))
@@ -16,6 +16,7 @@ from src.baselines.lucene_join import lucene_join
 ray.init(
     _temp_dir=str(Path.home() / ".cache" / "ray"), num_cpus=min(os.cpu_count(), 32)
 )
+
 
 def run_lucene_join(config):
     os.chdir(os.environ["TUNE_ORIG_WORKING_DIR"])

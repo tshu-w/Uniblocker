@@ -1,5 +1,7 @@
 from typing import Callable
+
 import pandas as pd
+
 
 class SparseConverter:
     def __init__(
