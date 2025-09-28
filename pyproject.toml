@@ -23,7 +23,7 @@ select = [
     "UP",  # pyupgrade
     "I",   # isort
 ]
-ignore = ["E402", "E501", "E722"]
+ignore = ["E402", "E501", "E722", "E731"]
 # https://github.com/timothycrosley/isort/
 [tool.ruff.lint.isort]
 combine-as-imports = true

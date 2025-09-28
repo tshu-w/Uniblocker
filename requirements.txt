@@ -1,18 +1,16 @@
---find-links https://download.pytorch.org/whl/cu113/torch_stable.html
 torch >= 2.0.0
 lightning >= 2.0.0
 jsonargparse[signatures] # for CLI
 
 transformers
+retriv
 
 scikit-learn
 pytorch-metric-learning
 py_stringmatching
-pyarrow
 
 nlpaug
 nltk
-gensim
 
 ### required by other baselines and benchmarking
 # DeepBlocker
@@ -23,9 +21,7 @@ pyjnius
 # Lucene
 pyserini
 # Faiss
-faiss-gpu
-# NMSLIB
-nmslib
+faiss-cpu
 # Timing
 codetiming
 

@@ -1,5 +1,5 @@
 from .converters import SparseConverter
-from .indexers import FaissIndexer, LuceneIndexer, NMSLIBIndexer, SklearnIndexer
+from .indexers import FaissIndexer, LuceneIndexer, SklearnIndexer
 from .nnblocker import NNBlocker
 from .vectorizers import DenseVectorizer, SparseVectorizer
 
@@ -10,6 +10,5 @@ __all__ = [
     "DenseVectorizer",
     "FaissIndexer",
     "LuceneIndexer",
-    "NMSLIBIndexer",
     "SklearnIndexer",
 ]

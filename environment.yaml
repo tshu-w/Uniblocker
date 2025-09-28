@@ -1,10 +1,10 @@
-name: uniblocker
+name: UniBlocker
 channels:
   - defaults
   - conda-forge
   - pytorch
 dependencies:
-  - python=3.10
+  - python=3.12
   - pip
   - openjdk=11
   - maven

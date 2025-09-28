@@ -34,18 +34,6 @@ class Evaluator(pl.Callback):
         collate_fn = getattr(module, "collate_fn", default_collate)
         vectorizer = DenseVectorizer(module, collate_fn, module.device)
 
-        # import nmslib
-        # from src.utils.nnblocker import NMSLIBIndexer
-        # indexer = NMSLIBIndexer(
-        #     init_kwargs={
-        #         "method": "hnsw",
-        #         "space": "cosinesimil",
-        #         "data_type": nmslib.DataType.DENSE_VECTOR,
-        #     },
-        #     index_params={"M": 30, "indexThreadQty": 12, "efConstruction": 1000},
-        #     query_params={},
-        #     threads=12,
-        # )
         indexer = FaissIndexer(index_factory="Flat")
         blocker = NNBlocker(dfs, vectorizer, indexer)
         candidates = blocker(k=self.n_neighbors)
