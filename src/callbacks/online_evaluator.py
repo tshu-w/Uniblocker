@@ -1,11 +1,11 @@
 from typing import Optional
 
-import lightning.pytorch as pl
+import lightning as L
 
 from src.datamodules.blocking import Blocking
 
 
-class OnlineEvaluator(pl.Callback):
+class OnlineEvaluator(L.Callback):
     def __init__(
         self,
         data_dir: str = "data/blocking/census",
@@ -16,8 +16,8 @@ class OnlineEvaluator(pl.Callback):
 
     def setup(
         self,
-        trainer: pl.Trainer,
-        module: pl.LightningModule,
+        trainer: L.Trainer,
+        module: L.LightningModule,
         stage: Optional[str] = None,
     ) -> None:
         datamodule = trainer.datamodule or module

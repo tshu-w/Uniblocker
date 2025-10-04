@@ -57,7 +57,6 @@ def sweep_blocking_workflows(
     run_config = air.RunConfig(
         name="blocking_workflows",
         storage_path="results/ray",
-        log_to_file=True,
         verbose=1,
     )
     trainable = tune.with_parameters(run_blocking_workflows)

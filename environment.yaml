@@ -4,9 +4,9 @@ channels:
   - conda-forge
   - pytorch
 dependencies:
-  - python=3.12
+  - python
   - pip
-  - openjdk=11
+  - openjdk
   - maven
   - pip:
       - --requirement requirements.txt

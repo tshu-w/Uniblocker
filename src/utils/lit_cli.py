@@ -1,5 +1,5 @@
 import os
-from typing import Iterable
+from collections.abc import Iterable
 
 from lightning.pytorch.cli import LightningCLI
 
@@ -50,17 +50,6 @@ def lit_cli():
         },
         save_config_kwargs={"overwrite": True},
     )
-
-
-def get_cli_parser():
-    # provide cli.parser for shtab.
-    #
-    # shtab --shell {bash,zsh,tcsh} src.utils.lit_cli.get_cli_parser
-    # for more details see https://docs.iterative.ai/shtab/use/#cli-usage
-    from jsonargparse import capture_parser
-
-    parser = capture_parser(lit_cli)
-    return parser
 
 
 if __name__ == "__main__":

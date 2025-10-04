@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from pyserini.analysis import JWhiteSpaceAnalyzer
 from pyserini.pyclass import autoclass
-from pyserini.search import LuceneSearcher
+from pyserini.search.lucene import LuceneSearcher
 
 from .indexer import BatchSearchResult, Indexer
 

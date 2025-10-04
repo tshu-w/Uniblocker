@@ -1,4 +1,4 @@
-import lightning.pytorch as pl
+import lightning as L
 from torch.utils.data import DataLoader, IterableDataset
 from torch.utils.data.dataloader import default_collate
 
@@ -19,7 +19,7 @@ def empty_dataloader(*args, **kwargs):
     return DataLoader(EmptyIterDataset())
 
 
-class Evaluator(pl.Callback):
+class Evaluator(L.Callback):
     def __init__(
         self,
         n_neighbors: int = 100,
@@ -27,7 +27,7 @@ class Evaluator(pl.Callback):
         super().__init__()
         self.n_neighbors = n_neighbors
 
-    def evaluate(self, trainer: pl.Trainer, module: pl.LightningModule) -> None:
+    def evaluate(self, trainer: L.Trainer, module: L.LightningModule) -> None:
         datamodule = trainer.datamodule or module
 
         dfs = [ds.df for ds in datamodule.datasets]
@@ -41,17 +41,28 @@ class Evaluator(pl.Callback):
         matches = datamodule.matches
         results = evaluate(candidates, matches)
 
+        if type(module).__name__ == "UniBlocker":
+            import pickle
+            from pathlib import Path
+
+            save_dir = Path("results") / "debug" / "dense"
+            save_dir.mkdir(exist_ok=True, parents=True)
+            candidates_file = (
+                save_dir / f"{Path(datamodule.hparams.data_dir).name}.pickle"
+            )
+            print(candidates_file)
+            with candidates_file.open("wb") as f:
+                pickle.dump(candidates, f)
+
         if trainer.validating:
             module.log_dict({f"val/{k}": v for k, v in results.items()}, sync_dist=True)
         else:
             module.log_dict(results, sync_dist=True)
 
     def on_validation_epoch_end(
-        self, trainer: pl.Trainer, module: pl.LightningModule
+        self, trainer: L.Trainer, module: L.LightningModule
     ) -> None:
         self.evaluate(trainer, module)
 
-    def on_test_epoch_end(
-        self, trainer: pl.Trainer, module: pl.LightningModule
-    ) -> None:
+    def on_test_epoch_end(self, trainer: L.Trainer, module: L.LightningModule) -> None:
         self.evaluate(trainer, module)

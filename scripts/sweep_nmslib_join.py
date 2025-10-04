@@ -68,7 +68,6 @@ def sweep_sparse_join(
     run_config = air.RunConfig(
         name="nmslib_join",
         storage_path="../results/ray",
-        log_to_file=True,
         verbose=1,
     )
     trainable = tune.with_parameters(run_sparse_join)

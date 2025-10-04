@@ -85,7 +85,6 @@ def sweep_blocking(
     run_config = air.RunConfig(
         name="blocking",
         storage_path=Path("./results/ray").resolve(),
-        log_to_file=True,
         verbose=1,
     )
     trainable = tune.with_parameters(

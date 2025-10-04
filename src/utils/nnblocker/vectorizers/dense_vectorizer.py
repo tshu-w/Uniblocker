@@ -24,7 +24,7 @@ class DenseVectorizer(Vectorizer):
         self._device = device
 
     @torch.no_grad()
-    def __call__(self, data: pd.DataFrame, batch_size: int = 512):
+    def __call__(self, data: pd.DataFrame, batch_size: int = 128):
         data = data.fillna("").astype(str)
         records = data.to_dict(orient="records")
         embeddings = []

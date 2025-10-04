@@ -70,7 +70,7 @@ def sweep_lucene_join(
     run_config = air.RunConfig(
         name="sparse_join",
         storage_path="results/ray",
-        log_to_file=True,
+        log_to_file=False,
         verbose=1,
     )
     trainable = tune.with_parameters(run_lucene_join)

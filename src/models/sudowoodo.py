@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-import lightning.pytorch as pl
+import lightning as L
 import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from transformers import AutoConfig, AutoModel, AutoTokenizer, get_scheduler
@@ -10,7 +10,7 @@ from src.utils.augment import Augmenter
 from src.utils.collators import TransformerCollatorWithAugmenter
 
 
-class Sudowoodo(pl.LightningModule):
+class Sudowoodo(L.LightningModule):
     def __init__(
         self,
         model_name_or_path: str,

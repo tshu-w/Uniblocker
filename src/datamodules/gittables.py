@@ -1,13 +1,13 @@
 from typing import Optional
 
-import lightning.pytorch as pl
+import lightning as L
 from lightning.pytorch.utilities.types import TRAIN_DATALOADERS
 from torch.utils.data import DataLoader
 
 from .datasets.gittables_dataset import GitTablesDataset
 
 
-class GitTables(pl.LightningDataModule):
+class GitTables(L.LightningDataModule):
     def __init__(
         self,
         data_dir: str = "./data/gittables/raw_4943312",

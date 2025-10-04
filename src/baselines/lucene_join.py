@@ -24,6 +24,7 @@ def lucene_join(
     if tokenizer is None:
         tokenizer = lambda x: x.split()
         from py_stringmatching.tokenizer.qgram_tokenizer import QgramTokenizer
+
         tokenizer = QgramTokenizer(qval=5).tokenize
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -39,6 +40,15 @@ def lucene_join(
     matches_path = Path(data_dir) / "matches.csv"
     matches = set(pd.read_csv(matches_path).itertuples(index=False, name=None))
     metrics = evaluate(candidates, matches)
+
+    import pickle
+
+    save_dir = Path("results") / "debug" / "lucene_join"
+    save_dir.mkdir(exist_ok=True, parents=True)
+    candidates_file = save_dir / f"{Path(data_dir).name}.pickle"
+    print(candidates_file)
+    with candidates_file.open("wb") as f:
+        pickle.dump(candidates, f)
 
     print(metrics)
     return metrics

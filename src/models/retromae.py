@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-import lightning.pytorch as pl
+import lightning as L
 import torch
 import torch.nn.functional as F
 from lightning.pytorch.utilities.types import STEP_OUTPUT
@@ -33,7 +33,7 @@ def create_position_ids_from_input_ids(
     return incremental_indices.long() + padding_idx
 
 
-class RetroMAE(pl.LightningModule):
+class RetroMAE(L.LightningModule):
     def __init__(
         self,
         model_name_or_path: str,
