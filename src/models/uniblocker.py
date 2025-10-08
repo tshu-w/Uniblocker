@@ -45,6 +45,9 @@ class UniBlocker(L.LightningModule):
         self.loss_func = CircleLoss(m=m, gamma=gamma)
         self.distance = distance
 
+    def on_fit_start(self):
+        self.train()
+
     def forward(self, inputs) -> Any:
         outputs = self.model(**inputs)
         pooled_output = self.pooler(outputs, inputs.attention_mask)

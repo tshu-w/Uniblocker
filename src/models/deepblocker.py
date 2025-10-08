@@ -61,6 +61,9 @@ class DeepBlocker(L.LightningModule):
             tokenizer=tokenizer, embedder=embedder
         )
 
+    def on_fit_start(self):
+        self.train()
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.encoder(x)
 

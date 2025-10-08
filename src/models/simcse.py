@@ -38,6 +38,9 @@ class SimCSE(L.LightningModule):
         self.with_mlp = "mlp" in pooler_type
         self.loss_func = NTXentLoss(temperature=temperature, direction="single")
 
+    def on_fit_start(self):
+        self.train()
+
     def forward(self, inputs) -> Any:
         outputs = self.model(**inputs)
         pooled_output = self.pooler(outputs, inputs.attention_mask)

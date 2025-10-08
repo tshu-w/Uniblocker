@@ -50,6 +50,9 @@ class Sudowoodo(L.LightningModule):
         self.loss_c = NTXentLoss(temperature=temperature)
         self.loss_b = BarlowTwinsLoss(dim=self.projector.output_dim, lambd=lambd)
 
+    def on_fit_start(self):
+        self.train()
+
     def forward(self, x) -> Any:
         return self.model(**x).last_hidden_state[:, 0]
 

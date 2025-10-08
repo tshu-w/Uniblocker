@@ -72,6 +72,9 @@ class RetroMAE(L.LightningModule):
         )
         self.decoder = AutoModel.from_config(decoder_config).encoder
 
+    def on_fit_start(self):
+        self.train()
+
     def forward(self, x) -> Any:
         return self.encoder(**x).hidden_states[-1][:, 0]
 

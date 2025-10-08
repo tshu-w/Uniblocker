@@ -42,6 +42,9 @@ class SimCLR(L.LightningModule):
         )
         self.loss_func = NTXentLoss(temperature=temperature)
 
+    def on_fit_start(self):
+        self.train()
+
     def forward(self, x) -> Any:
         return self.model(**x).pooler_output
 
